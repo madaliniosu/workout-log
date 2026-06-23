@@ -2,11 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/auth';
 import { createExercise, getExercisesForUser } from '@/db/queries/exercises';
+import { createExerciseSchema } from '@/lib/validations';
 
-const createExerciseSchema = z.object({
-  name: z.string().min(1),
-  muscleGroup: z.string().optional(),
-});
 
 export async function GET() {
   const session = await auth();
