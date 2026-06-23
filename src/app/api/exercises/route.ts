@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { auth } from '@/auth';
 import { createExercise, getExercisesForUser } from '@/db/queries/exercises';
 import { createExerciseSchema } from '@/lib/validations';
