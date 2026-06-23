@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { auth } from '@/auth';
 import { deleteWorkoutSession, updateWorkoutSession } from '@/db/queries/workouts';
 import { workoutSessionSchema } from '@/lib/validations';

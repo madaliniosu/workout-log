@@ -9,12 +9,11 @@ type DataPoint = { date: string; maxWeight: number };
 export function ExerciseProgress({ exercises }: { exercises: Exercise[] }) {
   const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? '');
   const [data, setData] = useState<DataPoint[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!exerciseId) return;
 
-    setLoading(true);
     fetch(`/api/analytics/exercise-progress?exerciseId=${exerciseId}`)
       .then((res) => res.json())
       .then((rows: { date: string; maxWeight: number }[]) => {
@@ -23,9 +22,14 @@ export function ExerciseProgress({ exercises }: { exercises: Exercise[] }) {
       .finally(() => setLoading(false));
   }, [exerciseId]);
 
+  function handleExerciseChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setLoading(true);
+    setExerciseId(e.target.value);
+  }
+
   return (
     <div>
-      <select value={exerciseId} onChange={(e) => setExerciseId(e.target.value)} className="border rounded p-2 mb-2">
+      <select value={exerciseId} onChange={handleExerciseChange} className="border rounded p-2 mb-2">
         {exercises.map((exercise) => (
           <option key={exercise.id} value={exercise.id}>
             {exercise.name}
