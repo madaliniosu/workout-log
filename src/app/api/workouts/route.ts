@@ -2,19 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/auth';
 import { createWorkoutSession } from '@/db/queries/workouts';
+import { workoutSessionSchema } from '@/lib/validations';
 
-const setSchema = z.object({
-  exerciseId: z.uuid(),
-  reps: z.coerce.number().int().positive(),
-  weight: z.coerce.number().nonnegative(),
-  rpe: z.coerce.number().min(1).max(10).optional(),
-});
-
-const createSessionSchema = z.object({
-  date: z.coerce.date(),
-  notes: z.string().optional(),
-  sets: z.array(setSchema).min(1),
-});
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -22,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const parsed = createSessionSchema.safeParse(await request.json());
+  const parsed = workoutSessionSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
