@@ -23,3 +23,7 @@ export const workoutSessionSchema = z.object({
   notes: z.string().optional(),
   sets: z.array(setSchema).min(1),
 });
+
+export const updateNameSchema = z.object({
+  name: z.string().min(1),
+});
