@@ -7,6 +7,7 @@ const links = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/exercises', label: 'Exercises' },
   { href: '/workouts', label: 'Workouts' },
+  { href: '/settings', label: 'Settings' },
 ];
 
 export function SideNav() {
@@ -15,7 +16,8 @@ export function SideNav() {
   return (
     <nav className="w-48 shrink-0 border-r p-4 flex flex-col gap-1">
       {links.map((link) => {
-        const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+        const isActive =
+          pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link
             key={link.href}
