@@ -10,3 +10,7 @@ export async function getUserById(userId: string) {
 export async function updateUserName(userId: string, name: string) {
   await db.update(users).set({ name }).where(eq(users.id, userId));
 }
+
+export async function updateUserPassword(userId: string, passwordHash: string) {
+  await db.update(users).set({ passwordHash }).where(eq(users.id, userId));
+}
