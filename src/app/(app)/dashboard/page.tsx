@@ -4,6 +4,8 @@ import { getPersonalRecords, getVolumeOverTime } from '@/db/queries/analytics';
 import { VolumeChart } from './volume-chart';
 import { getExercisesForUser } from '@/db/queries/exercises';
 import { ExerciseProgress } from './exercise-progress';
+import { getUserById } from '@/db/queries/users';
+
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -11,7 +13,8 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const [volumeData, personalRecords, exercises] = await Promise.all([
+  const [user, volumeData, personalRecords, exercises] = await Promise.all([
+    getUserById(session.user.id),
     getVolumeOverTime(session.user.id),
     getPersonalRecords(session.user.id),
     getExercisesForUser(session.user.id),
@@ -25,7 +28,7 @@ export default async function DashboardPage() {
   return (
     <div className="max-w-2xl mx-auto mt-20">
       <h1 className="text-xl font-semibold mb-6">
-        Welcome, {session.user.name}
+        Welcome, {user.name}
       </h1>
 
       <h2 className="font-medium mb-2">Training volume over time</h2>
