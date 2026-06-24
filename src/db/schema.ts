@@ -5,6 +5,7 @@ import {
   integer,
   real,
   timestamp,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -40,9 +41,24 @@ export const workoutSets = pgTable('workout_sets', {
     .references(() => workoutSessions.id, { onDelete: 'cascade' }),
   exerciseId: uuid('exercise_id')
     .notNull()
-    .references(() => exercises.id),
+    .references(() => exercises.id, { onDelete: 'cascade' }),
   setOrder: integer('set_order').notNull(),
   reps: integer('reps').notNull(),
   weight: real('weight').notNull(),
   rpe: real('rpe'),
 });
+
+export const hiddenExercises = pgTable(
+  'hidden_exercises',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    exerciseId: uuid('exercise_id')
+      .notNull()
+      .references(() => exercises.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.exerciseId] }),
+  })
+);
