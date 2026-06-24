@@ -2,6 +2,11 @@ import { and, eq, inArray, isNull, or } from 'drizzle-orm';
 import { db } from '@/db';
 import { exercises, hiddenExercises, workoutSessions, workoutSets } from '@/db/schema';
 
+export async function createExercise(userId: string, data: { name: string; muscleGroup?: string }) {
+  const [exercise] = await db.insert(exercises).values({ ...data, userId }).returning();
+  return exercise;
+}
+
 export async function getExercisesForUser(userId: string) {
   const rows = await db
     .select({ exercise: exercises })
@@ -51,3 +56,4 @@ export async function deleteExercise(exerciseId: string, userId: string) {
   await db.delete(exercises).where(eq(exercises.id, exerciseId));
   return 'deleted' as const;
 }
+
