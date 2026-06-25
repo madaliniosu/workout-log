@@ -1,7 +1,9 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { getWorkoutSessionsForUser } from '@/db/queries/workouts';
+import { getWorkoutTemplatesForUser } from '@/db/queries/workout-template';
+import { getExercisesForUser } from '@/db/queries/exercises';
+import { NewWorkoutTemplateButton } from './new-workout-template-button';
+import { DeleteWorkoutTemplateButton } from './delete-workout-template-button';
 
 export default async function WorkoutsPage() {
   const session = await auth();
@@ -9,27 +11,36 @@ export default async function WorkoutsPage() {
     redirect('/login');
   }
 
-  const sessions = await getWorkoutSessionsForUser(session.user.id);
+  const [templates, exercises] = await Promise.all([
+    getWorkoutTemplatesForUser(session.user.id),
+    getExercisesForUser(session.user.id),
+  ]);
 
   return (
-    <div className="max-w-lg mx-auto mt-20">
+    <div className="max-w-3xl mx-auto mt-20">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-semibold">Workout history</h1>
-        <Link href="/workouts/new" className="text-sm underline">
-          + Log a workout
-        </Link>
+        <h1 className="text-xl font-semibold">Workouts</h1>
+        <NewWorkoutTemplateButton exercises={exercises} />
       </div>
-      <ul className="flex flex-col gap-2">
-        {sessions.map((s) => (
-          <li key={s.id}>
-            <Link href={`/workouts/${s.id}`} className="border rounded p-2 block hover:bg-gray-50">
-              {new Date(s.date).toLocaleDateString()}
-              {s.notes && <span className="text-gray-500 text-sm"> — {s.notes}</span>}
-            </Link>
-          </li>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {templates.map((template) => (
+          <div key={template.id} className="border rounded p-4">
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="font-medium">{template.name}</h2>
+              <DeleteWorkoutTemplateButton templateId={template.id} />
+            </div>
+            {template.notes && <p className="text-gray-500 text-sm mb-2">{template.notes}</p>}
+            <ul className="text-sm flex flex-col gap-1">
+              {template.exercises.map((exercise) => (
+                <li key={exercise.exerciseId}>
+                  {exercise.exerciseName} — {exercise.setCount} sets
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-        {sessions.length === 0 && <p className="text-gray-500 text-sm">No workouts logged yet.</p>}
-      </ul>
+        {templates.length === 0 && <p className="text-gray-500 text-sm">No workouts yet.</p>}
+      </div>
     </div>
   );
 }

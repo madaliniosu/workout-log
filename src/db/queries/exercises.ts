@@ -1,30 +1,22 @@
 import { and, eq, inArray, isNull, or } from 'drizzle-orm';
 import { db } from '@/db';
-import { exercises, hiddenExercises, workoutSessions, workoutSets } from '@/db/schema';
+import { exercises, exerciseDimensions, hiddenExercises, workoutSessions, workoutSets } from '@/db/schema';
 
-export async function createExercise(userId: string, data: { name: string; muscleGroup?: string }) {
-  const [exercise] = await db.insert(exercises).values({ ...data, userId }).returning();
-  return exercise;
+export async function createExercise(
+  userId: string,
+  data: { name: string; muscleGroup?: string; dimensions: string[] }
+) {
+  const exerciseId = crypto.randomUUID();
+
+  await db.batch([
+    db.insert(exercises).values({ id: exerciseId, name: data.name, muscleGroup: data.muscleGroup, userId }),
+    db.insert(exerciseDimensions).values(
+      data.dimensions.map((dimension) => ({ exerciseId, dimension }))
+    ),
+  ]);
+
+  return { id: exerciseId, ...data, userId };
 }
-
-export async function getExercisesForUser(userId: string) {
-  const rows = await db
-    .select({ exercise: exercises })
-    .from(exercises)
-    .leftJoin(
-      hiddenExercises,
-      and(eq(hiddenExercises.exerciseId, exercises.id), eq(hiddenExercises.userId, userId))
-    )
-    .where(
-      and(
-        or(isNull(exercises.userId), eq(exercises.userId, userId)),
-        isNull(hiddenExercises.userId)
-      )
-    );
-
-  return rows.map((row) => row.exercise);
-}
-
 
 export async function deleteExercise(exerciseId: string, userId: string) {
   const [exercise] = await db.select().from(exercises).where(eq(exercises.id, exerciseId));
@@ -57,3 +49,33 @@ export async function deleteExercise(exerciseId: string, userId: string) {
   return 'deleted' as const;
 }
 
+export async function getExercisesForUser(userId: string) {
+  const rows = await db
+    .select({ exercise: exercises })
+    .from(exercises)
+    .leftJoin(
+      hiddenExercises,
+      and(eq(hiddenExercises.exerciseId, exercises.id), eq(hiddenExercises.userId, userId))
+    )
+    .where(
+      and(
+        or(isNull(exercises.userId), eq(exercises.userId, userId)),
+        isNull(hiddenExercises.userId)
+      )
+    );
+
+  const exerciseList = rows.map((row) => row.exercise);
+  if (exerciseList.length === 0) {
+    return [];
+  }
+
+  const dimensionRows = await db
+    .select()
+    .from(exerciseDimensions)
+    .where(inArray(exerciseDimensions.exerciseId, exerciseList.map((e) => e.id)));
+
+  return exerciseList.map((exercise) => ({
+    ...exercise,
+    dimensions: dimensionRows.filter((d) => d.exerciseId === exercise.id).map((d) => d.dimension),
+  }));
+}
