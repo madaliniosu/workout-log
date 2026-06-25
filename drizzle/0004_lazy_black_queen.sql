@@ -1,0 +1,1 @@
+ALTER TABLE "scheduled_workouts" RENAME COLUMN "date" TO "scheduled_at";

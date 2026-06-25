@@ -8,6 +8,7 @@ const links = [
   { href: '/analytics', label: 'Analytics' },
   { href: '/exercises', label: 'Exercises' },
   { href: '/workouts', label: 'Workouts' },
+  { href: '/calendar', label: 'Calendar' },
   { href: '/settings', label: 'Settings' },
 ];
 

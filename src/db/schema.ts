@@ -6,6 +6,7 @@ import {
   real,
   timestamp,
   primaryKey,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -58,7 +59,7 @@ export const hiddenExercises = pgTable(
       .notNull()
       .references(() => exercises.id, { onDelete: 'cascade' }),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.exerciseId] })]
+  (table) => [primaryKey({ columns: [table.userId, table.exerciseId] })],
 );
 
 export const exerciseDimensions = pgTable(
@@ -69,7 +70,7 @@ export const exerciseDimensions = pgTable(
       .references(() => exercises.id, { onDelete: 'cascade' }),
     dimension: text('dimension').notNull(),
   },
-  (table) => [primaryKey({ columns: [table.exerciseId, table.dimension] })]
+  (table) => [primaryKey({ columns: [table.exerciseId, table.dimension] })],
 );
 
 export const workoutTemplates = pgTable('workout_templates', {
@@ -92,4 +93,49 @@ export const workoutTemplateExercises = pgTable('workout_template_exercises', {
     .references(() => exercises.id, { onDelete: 'cascade' }),
   setCount: integer('set_count').notNull(),
   exerciseOrder: integer('exercise_order').notNull(),
+});
+
+export const scheduledWorkouts = pgTable('scheduled_workouts', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  templateId: uuid('template_id').references(() => workoutTemplates.id, {
+    onDelete: 'set null',
+  }),
+  name: text('name').notNull(),
+  scheduledAt: text('scheduled_at').notNull(), // 'YYYY-MM-DDTHH:mm', naive local time, never UTC-converted
+  completed: boolean('completed').notNull().default(false),
+  completedAt: timestamp('completed_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const scheduledWorkoutExercises = pgTable(
+  'scheduled_workout_exercises',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    scheduledWorkoutId: uuid('scheduled_workout_id')
+      .notNull()
+      .references(() => scheduledWorkouts.id, { onDelete: 'cascade' }),
+    exerciseId: uuid('exercise_id').references(() => exercises.id, {
+      onDelete: 'set null',
+    }),
+    exerciseName: text('exercise_name').notNull(),
+    setCount: integer('set_count').notNull(),
+    exerciseOrder: integer('exercise_order').notNull(),
+  },
+);
+
+export const completedSets = pgTable('completed_sets', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduledWorkoutId: uuid('scheduled_workout_id')
+    .notNull()
+    .references(() => scheduledWorkouts.id, { onDelete: 'cascade' }),
+  exerciseId: uuid('exercise_id').references(() => exercises.id, {
+    onDelete: 'set null',
+  }),
+  exerciseName: text('exercise_name').notNull(),
+  setNumber: integer('set_number').notNull(),
+  dimension: text('dimension').notNull(),
+  value: real('value').notNull(),
 });

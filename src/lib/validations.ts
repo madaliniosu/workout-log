@@ -47,3 +47,8 @@ export const workoutTemplateSchema = z.object({
   notes: z.string().optional(),
   exercises: z.array(workoutTemplateExerciseSchema).min(1),
 });
+
+export const scheduleWorkoutSchema = z.object({
+  templateId: z.uuid(),
+  scheduledAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+});
