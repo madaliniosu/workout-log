@@ -58,7 +58,38 @@ export const hiddenExercises = pgTable(
       .notNull()
       .references(() => exercises.id, { onDelete: 'cascade' }),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.exerciseId] }),
-  })
+  (table) => [primaryKey({ columns: [table.userId, table.exerciseId] })]
 );
+
+export const exerciseDimensions = pgTable(
+  'exercise_dimensions',
+  {
+    exerciseId: uuid('exercise_id')
+      .notNull()
+      .references(() => exercises.id, { onDelete: 'cascade' }),
+    dimension: text('dimension').notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.exerciseId, table.dimension] })]
+);
+
+export const workoutTemplates = pgTable('workout_templates', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id),
+  name: text('name').notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const workoutTemplateExercises = pgTable('workout_template_exercises', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  templateId: uuid('template_id')
+    .notNull()
+    .references(() => workoutTemplates.id, { onDelete: 'cascade' }),
+  exerciseId: uuid('exercise_id')
+    .notNull()
+    .references(() => exercises.id, { onDelete: 'cascade' }),
+  setCount: integer('set_count').notNull(),
+  exerciseOrder: integer('exercise_order').notNull(),
+});
