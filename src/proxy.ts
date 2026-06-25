@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 
-const protectedRoutes = ['/dashboard', '/workouts', '/exercises', '/settings', '/analytics'];
+const protectedRoutes = ['/dashboard', '/workouts', '/exercises', '/settings', '/analytics', '/calendar'];
 
 export default auth((req) => {
   const isProtected = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route));
@@ -12,5 +12,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/workouts/:path*', '/exercises/:path*', '/settings/:path*', '/analytics/:path*'],
+  matcher: ['/dashboard/:path*', '/workouts/:path*', '/exercises/:path*', '/settings/:path*', '/analytics/:path*', '/calendar/:path*'],
 };
