@@ -1,19 +1,35 @@
 import { describe, expect, it } from 'vitest';
-import { createExerciseSchema, signupSchema, workoutSessionSchema } from './validations';
+import {
+  createExerciseSchema,
+  signupSchema,
+  workoutSessionSchema,
+} from './validations';
 
 describe('signupSchema', () => {
   it('accepts valid signup data', () => {
-    const result = signupSchema.safeParse({ name: 'Test', email: 'test@example.com', password: 'password123' });
+    const result = signupSchema.safeParse({
+      name: 'Test',
+      email: 'test@example.com',
+      password: 'password123',
+    });
     expect(result.success).toBe(true);
   });
 
   it('rejects a short password', () => {
-    const result = signupSchema.safeParse({ name: 'Test', email: 'test@example.com', password: 'short' });
+    const result = signupSchema.safeParse({
+      name: 'Test',
+      email: 'test@example.com',
+      password: 'short',
+    });
     expect(result.success).toBe(false);
   });
 
   it('rejects an invalid email', () => {
-    const result = signupSchema.safeParse({ name: 'Test', email: 'not-an-email', password: 'password123' });
+    const result = signupSchema.safeParse({
+      name: 'Test',
+      email: 'not-an-email',
+      password: 'password123',
+    });
     expect(result.success).toBe(false);
   });
 });
@@ -25,20 +41,26 @@ describe('createExerciseSchema', () => {
   });
 
   it('allows muscleGroup to be omitted', () => {
-    const result = createExerciseSchema.safeParse({ name: 'Squat' });
+    const result = createExerciseSchema.safeParse({
+      name: 'Squat',
+      dimensions: ['reps'],
+    });
     expect(result.success).toBe(true);
   });
-  it('allows muscleGroup to be omitted', () => {
-  const result = createExerciseSchema.safeParse({ name: 'Squat', dimensions: ['reps'] });
-  expect(result.success).toBe(true);
-});
 });
 
 describe('workoutSessionSchema', () => {
-  const validSet = { exerciseId: '123e4567-e89b-12d3-a456-426614174000', reps: 10, weight: 50 };
+  const validSet = {
+    exerciseId: '123e4567-e89b-12d3-a456-426614174000',
+    reps: 10,
+    weight: 50,
+  };
 
   it('requires at least one set', () => {
-    const result = workoutSessionSchema.safeParse({ date: new Date().toISOString(), sets: [] });
+    const result = workoutSessionSchema.safeParse({
+      date: new Date().toISOString(),
+      sets: [],
+    });
     expect(result.success).toBe(false);
   });
 
@@ -51,7 +73,10 @@ describe('workoutSessionSchema', () => {
   });
 
   it('accepts a valid session', () => {
-    const result = workoutSessionSchema.safeParse({ date: new Date().toISOString(), sets: [validSet] });
+    const result = workoutSessionSchema.safeParse({
+      date: new Date().toISOString(),
+      sets: [validSet],
+    });
     expect(result.success).toBe(true);
   });
 });
