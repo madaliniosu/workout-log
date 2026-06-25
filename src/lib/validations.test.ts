@@ -28,6 +28,10 @@ describe('createExerciseSchema', () => {
     const result = createExerciseSchema.safeParse({ name: 'Squat' });
     expect(result.success).toBe(true);
   });
+  it('allows muscleGroup to be omitted', () => {
+  const result = createExerciseSchema.safeParse({ name: 'Squat', dimensions: ['reps'] });
+  expect(result.success).toBe(true);
+});
 });
 
 describe('workoutSessionSchema', () => {
