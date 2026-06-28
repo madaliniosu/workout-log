@@ -9,11 +9,11 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const exerciseId = searchParams.get('exerciseId');
-  if (!exerciseId) {
-    return NextResponse.json({ error: 'Missing exerciseId' }, { status: 400 });
+  const exerciseName = searchParams.get('exerciseName');
+  if (!exerciseName) {
+    return NextResponse.json({ error: 'Missing exerciseName' }, { status: 400 });
   }
 
-  const progress = await getExerciseProgress(session.user.id, exerciseId);
+  const progress = await getExerciseProgress(session.user.id, exerciseName);
   return NextResponse.json(progress);
 }

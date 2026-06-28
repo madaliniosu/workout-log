@@ -3,36 +3,35 @@
 import { useEffect, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-type Exercise = { id: string; name: string };
 type DataPoint = { date: string; maxWeight: number };
 
-export function ExerciseProgress({ exercises }: { exercises: Exercise[] }) {
-  const [exerciseId, setExerciseId] = useState(exercises[0]?.id ?? '');
+export function ExerciseProgress({ exerciseNames }: { exerciseNames: string[] }) {
+  const [exerciseName, setExerciseName] = useState(exerciseNames[0] ?? '');
   const [data, setData] = useState<DataPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!exerciseId) return;
+    if (!exerciseName) return;
 
-    fetch(`/api/analytics/exercise-progress?exerciseId=${exerciseId}`)
+    fetch(`/api/analytics/exercise-progress?exerciseName=${encodeURIComponent(exerciseName)}`)
       .then((res) => res.json())
       .then((rows: { date: string; maxWeight: number }[]) => {
         setData(rows.map((r) => ({ date: new Date(r.date).toLocaleDateString(), maxWeight: r.maxWeight })));
       })
       .finally(() => setLoading(false));
-  }, [exerciseId]);
+  }, [exerciseName]);
 
   function handleExerciseChange(e: React.ChangeEvent<HTMLSelectElement>) {
     setLoading(true);
-    setExerciseId(e.target.value);
+    setExerciseName(e.target.value);
   }
 
   return (
     <div>
-      <select value={exerciseId} onChange={handleExerciseChange} className="border rounded p-2 mb-2">
-        {exercises.map((exercise) => (
-          <option key={exercise.id} value={exercise.id}>
-            {exercise.name}
+      <select value={exerciseName} onChange={handleExerciseChange} className="border rounded p-2 mb-2">
+        {exerciseNames.map((name) => (
+          <option key={name} value={name}>
+            {name}
           </option>
         ))}
       </select>
