@@ -170,7 +170,7 @@ export async function getScheduledWorkoutsWithExercisesForUser(userId: string) {
 export async function completeScheduledWorkout(
   scheduledWorkoutId: string,
   userId: string,
-  sets: { exerciseId: string | null; exerciseName: string; setNumber: number; dimension: string; value: number }[]
+  sets: { scheduledWorkoutExerciseId: string; setNumber: number; dimension: string; value: number }[]
 ) {
   const [workout] = await db
     .select({ id: scheduledWorkouts.id })
@@ -181,12 +181,20 @@ export async function completeScheduledWorkout(
     return false;
   }
 
+  const validExerciseRows = await db
+    .select({ id: scheduledWorkoutExercises.id })
+    .from(scheduledWorkoutExercises)
+    .where(eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkoutId));
+  const validExerciseIds = new Set(validExerciseRows.map((r) => r.id));
+
+  if (sets.some((set) => !validExerciseIds.has(set.scheduledWorkoutExerciseId))) {
+    return false;
+  }
+
   await db.batch([
     db.insert(completedSets).values(
       sets.map((set) => ({
-        scheduledWorkoutId,
-        exerciseId: set.exerciseId,
-        exerciseName: set.exerciseName,
+        scheduledWorkoutExerciseId: set.scheduledWorkoutExerciseId,
         setNumber: set.setNumber,
         dimension: set.dimension,
         value: set.value,
@@ -200,7 +208,6 @@ export async function completeScheduledWorkout(
 
   return true;
 }
-
 
 export async function deleteScheduledWorkout(
   scheduledWorkoutId: string,

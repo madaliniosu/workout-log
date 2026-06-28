@@ -15,19 +15,6 @@ export const createExerciseSchema = z.object({
   dimensions: z.array(z.enum(DIMENSIONS)).min(1),
 });
 
-export const setSchema = z.object({
-  exerciseId: z.uuid(),
-  reps: z.coerce.number().int().positive(),
-  weight: z.coerce.number().nonnegative(),
-  rpe: z.coerce.number().min(1).max(10).optional(),
-});
-
-export const workoutSessionSchema = z.object({
-  date: z.coerce.date(),
-  notes: z.string().optional(),
-  sets: z.array(setSchema).min(1),
-});
-
 export const updateNameSchema = z.object({
   name: z.string().min(1),
 });
@@ -60,8 +47,7 @@ export const scheduleWorkoutSchema = z.object({
 });
 
 export const completedSetSchema = z.object({
-  exerciseId: z.uuid().nullable(),
-  exerciseName: z.string().min(1),
+  scheduledWorkoutExerciseId: z.uuid(),
   setNumber: z.coerce.number().int().positive(),
   dimension: z.enum(DIMENSIONS),
   value: z.coerce.number().nonnegative(),

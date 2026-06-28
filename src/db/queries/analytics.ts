@@ -23,14 +23,20 @@ export async function getVolumeOverTime(userId: string) {
     .innerJoin(
       weightSet,
       and(
-        eq(repsSet.scheduledWorkoutId, weightSet.scheduledWorkoutId),
-        eq(repsSet.exerciseName, weightSet.exerciseName),
+        eq(
+          repsSet.scheduledWorkoutExerciseId,
+          weightSet.scheduledWorkoutExerciseId,
+        ),
         eq(repsSet.setNumber, weightSet.setNumber),
       ),
     )
     .innerJoin(
+      scheduledWorkoutExercises,
+      eq(repsSet.scheduledWorkoutExerciseId, scheduledWorkoutExercises.id),
+    )
+    .innerJoin(
       scheduledWorkouts,
-      eq(repsSet.scheduledWorkoutId, scheduledWorkouts.id),
+      eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkouts.id),
     )
     .where(
       and(
@@ -46,13 +52,20 @@ export async function getVolumeOverTime(userId: string) {
 export async function getPersonalRecords(userId: string) {
   return db
     .select({
-      exerciseName: completedSets.exerciseName,
+      exerciseName: scheduledWorkoutExercises.exerciseName,
       maxWeight: sql<number>`max(${completedSets.value})`.as('maxWeight'),
     })
     .from(completedSets)
     .innerJoin(
+      scheduledWorkoutExercises,
+      eq(
+        completedSets.scheduledWorkoutExerciseId,
+        scheduledWorkoutExercises.id,
+      ),
+    )
+    .innerJoin(
       scheduledWorkouts,
-      eq(completedSets.scheduledWorkoutId, scheduledWorkouts.id),
+      eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkouts.id),
     )
     .where(
       and(
@@ -60,21 +73,28 @@ export async function getPersonalRecords(userId: string) {
         eq(completedSets.dimension, 'weight'),
       ),
     )
-    .groupBy(completedSets.exerciseName)
-    .orderBy(completedSets.exerciseName);
+    .groupBy(scheduledWorkoutExercises.exerciseName)
+    .orderBy(scheduledWorkoutExercises.exerciseName);
 }
 
 export async function getExerciseNamesWithData(userId: string) {
   const rows = await db
-    .select({ exerciseName: completedSets.exerciseName })
+    .select({ exerciseName: scheduledWorkoutExercises.exerciseName })
     .from(completedSets)
     .innerJoin(
+      scheduledWorkoutExercises,
+      eq(
+        completedSets.scheduledWorkoutExerciseId,
+        scheduledWorkoutExercises.id,
+      ),
+    )
+    .innerJoin(
       scheduledWorkouts,
-      eq(completedSets.scheduledWorkoutId, scheduledWorkouts.id),
+      eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkouts.id),
     )
     .where(eq(scheduledWorkouts.userId, userId))
-    .groupBy(completedSets.exerciseName)
-    .orderBy(completedSets.exerciseName);
+    .groupBy(scheduledWorkoutExercises.exerciseName)
+    .orderBy(scheduledWorkoutExercises.exerciseName);
 
   return rows.map((r) => r.exerciseName);
 }
@@ -90,13 +110,20 @@ export async function getExerciseProgress(
     })
     .from(completedSets)
     .innerJoin(
+      scheduledWorkoutExercises,
+      eq(
+        completedSets.scheduledWorkoutExerciseId,
+        scheduledWorkoutExercises.id,
+      ),
+    )
+    .innerJoin(
       scheduledWorkouts,
-      eq(completedSets.scheduledWorkoutId, scheduledWorkouts.id),
+      eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkouts.id),
     )
     .where(
       and(
         eq(scheduledWorkouts.userId, userId),
-        eq(completedSets.exerciseName, exerciseName),
+        eq(scheduledWorkoutExercises.exerciseName, exerciseName),
         eq(completedSets.dimension, 'weight'),
       ),
     )
@@ -131,10 +158,9 @@ export async function getPlannedVsActual(userId: string) {
       completedSets,
       and(
         eq(
-          completedSets.scheduledWorkoutId,
-          scheduledWorkoutExercises.scheduledWorkoutId,
+          completedSets.scheduledWorkoutExerciseId,
+          scheduledWorkoutExerciseTargets.scheduledWorkoutExerciseId,
         ),
-        eq(completedSets.exerciseName, scheduledWorkoutExercises.exerciseName),
         eq(completedSets.dimension, scheduledWorkoutExerciseTargets.dimension),
       ),
     )

@@ -1,14 +1,5 @@
-import {
-  pgTable,
-  uuid,
-  text,
-  integer,
-  real,
-  timestamp,
-  primaryKey,
-  foreignKey,
-  boolean,
-} from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, real, timestamp, primaryKey, foreignKey, boolean } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -26,30 +17,6 @@ export const exercises = pgTable('exercises', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const workoutSessions = pgTable('workout_sessions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
-  date: timestamp('date').defaultNow().notNull(),
-  notes: text('notes'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
-export const workoutSets = pgTable('workout_sets', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  sessionId: uuid('session_id')
-    .notNull()
-    .references(() => workoutSessions.id, { onDelete: 'cascade' }),
-  exerciseId: uuid('exercise_id')
-    .notNull()
-    .references(() => exercises.id, { onDelete: 'cascade' }),
-  setOrder: integer('set_order').notNull(),
-  reps: integer('reps').notNull(),
-  weight: real('weight').notNull(),
-  rpe: real('rpe'),
-});
-
 export const hiddenExercises = pgTable(
   'hidden_exercises',
   {
@@ -60,7 +27,7 @@ export const hiddenExercises = pgTable(
       .notNull()
       .references(() => exercises.id, { onDelete: 'cascade' }),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.exerciseId] })],
+  (table) => [primaryKey({ columns: [table.userId, table.exerciseId] })]
 );
 
 export const exerciseDimensions = pgTable(
@@ -71,7 +38,7 @@ export const exerciseDimensions = pgTable(
       .references(() => exercises.id, { onDelete: 'cascade' }),
     dimension: text('dimension').notNull(),
   },
-  (table) => [primaryKey({ columns: [table.exerciseId, table.dimension] })],
+  (table) => [primaryKey({ columns: [table.exerciseId, table.dimension] })]
 );
 
 export const workoutTemplates = pgTable('workout_templates', {
@@ -89,9 +56,8 @@ export const workoutTemplateExercises = pgTable('workout_template_exercises', {
   templateId: uuid('template_id')
     .notNull()
     .references(() => workoutTemplates.id, { onDelete: 'cascade' }),
-  exerciseId: uuid('exercise_id')
-    .notNull()
-    .references(() => exercises.id, { onDelete: 'cascade' }),
+  exerciseId: uuid('exercise_id').references(() => exercises.id, { onDelete: 'set null' }),
+  exerciseName: text('exercise_name').notNull(),
   setCount: integer('set_count').notNull(),
   exerciseOrder: integer('exercise_order').notNull(),
 });
@@ -104,13 +70,16 @@ export const workoutTemplateExerciseTargets = pgTable(
     targetValue: real('target_value').notNull(),
   },
   (table) => [
-    primaryKey({ name: 'workout_template_exercise_targets_pk', columns: [table.workoutTemplateExerciseId, table.dimension] }),
+    primaryKey({
+      name: 'workout_template_exercise_targets_pk',
+      columns: [table.workoutTemplateExerciseId, table.dimension],
+    }),
     foreignKey({
       name: 'workout_template_exercise_targets_fk',
       columns: [table.workoutTemplateExerciseId],
       foreignColumns: [workoutTemplateExercises.id],
     }).onDelete('cascade'),
-  ],
+  ]
 );
 
 export const scheduledWorkouts = pgTable('scheduled_workouts', {
@@ -118,9 +87,7 @@ export const scheduledWorkouts = pgTable('scheduled_workouts', {
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id),
-  templateId: uuid('template_id').references(() => workoutTemplates.id, {
-    onDelete: 'set null',
-  }),
+  templateId: uuid('template_id').references(() => workoutTemplates.id, { onDelete: 'set null' }),
   name: text('name').notNull(),
   scheduledAt: text('scheduled_at').notNull(), // 'YYYY-MM-DDTHH:mm', naive local time, never UTC-converted
   completed: boolean('completed').notNull().default(false),
@@ -128,21 +95,16 @@ export const scheduledWorkouts = pgTable('scheduled_workouts', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
-export const scheduledWorkoutExercises = pgTable(
-  'scheduled_workout_exercises',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    scheduledWorkoutId: uuid('scheduled_workout_id')
-      .notNull()
-      .references(() => scheduledWorkouts.id, { onDelete: 'cascade' }),
-    exerciseId: uuid('exercise_id').references(() => exercises.id, {
-      onDelete: 'set null',
-    }),
-    exerciseName: text('exercise_name').notNull(),
-    setCount: integer('set_count').notNull(),
-    exerciseOrder: integer('exercise_order').notNull(),
-  },
-);
+export const scheduledWorkoutExercises = pgTable('scheduled_workout_exercises', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  scheduledWorkoutId: uuid('scheduled_workout_id')
+    .notNull()
+    .references(() => scheduledWorkouts.id, { onDelete: 'cascade' }),
+  exerciseId: uuid('exercise_id').references(() => exercises.id, { onDelete: 'set null' }),
+  exerciseName: text('exercise_name').notNull(),
+  setCount: integer('set_count').notNull(),
+  exerciseOrder: integer('exercise_order').notNull(),
+});
 
 export const scheduledWorkoutExerciseTargets = pgTable(
   'scheduled_workout_exercise_targets',
@@ -152,25 +114,70 @@ export const scheduledWorkoutExerciseTargets = pgTable(
     targetValue: real('target_value').notNull(),
   },
   (table) => [
-    primaryKey({ name: 'scheduled_workout_exercise_targets_pk', columns: [table.scheduledWorkoutExerciseId, table.dimension] }),
+    primaryKey({
+      name: 'scheduled_workout_exercise_targets_pk',
+      columns: [table.scheduledWorkoutExerciseId, table.dimension],
+    }),
     foreignKey({
       name: 'scheduled_workout_exercise_targets_fk',
       columns: [table.scheduledWorkoutExerciseId],
       foreignColumns: [scheduledWorkoutExercises.id],
     }).onDelete('cascade'),
-  ],
+  ]
 );
 
 export const completedSets = pgTable('completed_sets', {
   id: uuid('id').defaultRandom().primaryKey(),
-  scheduledWorkoutId: uuid('scheduled_workout_id')
+  scheduledWorkoutExerciseId: uuid('scheduled_workout_exercise_id')
     .notNull()
-    .references(() => scheduledWorkouts.id, { onDelete: 'cascade' }),
-  exerciseId: uuid('exercise_id').references(() => exercises.id, {
-    onDelete: 'set null',
-  }),
-  exerciseName: text('exercise_name').notNull(),
+    .references(() => scheduledWorkoutExercises.id, { onDelete: 'cascade' }),
   setNumber: integer('set_number').notNull(),
   dimension: text('dimension').notNull(),
   value: real('value').notNull(),
 });
+
+export const workoutTemplatesRelations = relations(workoutTemplates, ({ many }) => ({
+  exercises: many(workoutTemplateExercises),
+}));
+
+export const workoutTemplateExercisesRelations = relations(workoutTemplateExercises, ({ one, many }) => ({
+  template: one(workoutTemplates, {
+    fields: [workoutTemplateExercises.templateId],
+    references: [workoutTemplates.id],
+  }),
+  targets: many(workoutTemplateExerciseTargets),
+}));
+
+export const workoutTemplateExerciseTargetsRelations = relations(workoutTemplateExerciseTargets, ({ one }) => ({
+  exercise: one(workoutTemplateExercises, {
+    fields: [workoutTemplateExerciseTargets.workoutTemplateExerciseId],
+    references: [workoutTemplateExercises.id],
+  }),
+}));
+
+export const scheduledWorkoutsRelations = relations(scheduledWorkouts, ({ many }) => ({
+  exercises: many(scheduledWorkoutExercises),
+}));
+
+export const scheduledWorkoutExercisesRelations = relations(scheduledWorkoutExercises, ({ one, many }) => ({
+  scheduledWorkout: one(scheduledWorkouts, {
+    fields: [scheduledWorkoutExercises.scheduledWorkoutId],
+    references: [scheduledWorkouts.id],
+  }),
+  targets: many(scheduledWorkoutExerciseTargets),
+  completedSets: many(completedSets),
+}));
+
+export const scheduledWorkoutExerciseTargetsRelations = relations(scheduledWorkoutExerciseTargets, ({ one }) => ({
+  exercise: one(scheduledWorkoutExercises, {
+    fields: [scheduledWorkoutExerciseTargets.scheduledWorkoutExerciseId],
+    references: [scheduledWorkoutExercises.id],
+  }),
+}));
+
+export const completedSetsRelations = relations(completedSets, ({ one }) => ({
+  exercise: one(scheduledWorkoutExercises, {
+    fields: [completedSets.scheduledWorkoutExerciseId],
+    references: [scheduledWorkoutExercises.id],
+  }),
+}));
