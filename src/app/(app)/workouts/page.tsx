@@ -29,17 +29,31 @@ export default async function WorkoutsPage() {
               <h2 className="font-medium">{template.name}</h2>
               <DeleteWorkoutTemplateButton templateId={template.id} />
             </div>
-            {template.notes && <p className="text-gray-500 text-sm mb-2">{template.notes}</p>}
+            {template.notes && (
+              <p className="text-gray-500 text-sm mb-2">{template.notes}</p>
+            )}
             <ul className="text-sm flex flex-col gap-1">
               {template.exercises.map((exercise) => (
-                <li key={exercise.exerciseId}>
+                <li key={exercise.id}>
                   {exercise.exerciseName} — {exercise.setCount} sets
+                  {exercise.targets.length > 0 && (
+                    <span className="text-gray-400">
+                      {' '}
+                      (
+                      {exercise.targets
+                        .map((t) => `${t.dimension}: ${t.targetValue}`)
+                        .join(', ')}
+                      )
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
         ))}
-        {templates.length === 0 && <p className="text-gray-500 text-sm">No workouts yet.</p>}
+        {templates.length === 0 && (
+          <p className="text-gray-500 text-sm">No workouts yet.</p>
+        )}
       </div>
     </div>
   );

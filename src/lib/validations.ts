@@ -37,9 +37,15 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8),
 });
 
+export const workoutTemplateExerciseTargetSchema = z.object({
+  dimension: z.enum(DIMENSIONS),
+  targetValue: z.coerce.number().nonnegative(),
+});
+
 export const workoutTemplateExerciseSchema = z.object({
   exerciseId: z.uuid(),
   setCount: z.coerce.number().int().positive(),
+  targets: z.array(workoutTemplateExerciseTargetSchema).min(1),
 });
 
 export const workoutTemplateSchema = z.object({
