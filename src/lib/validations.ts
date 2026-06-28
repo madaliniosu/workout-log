@@ -37,9 +37,15 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8),
 });
 
+export const workoutTemplateExerciseTargetSchema = z.object({
+  dimension: z.enum(DIMENSIONS),
+  targetValue: z.coerce.number().nonnegative(),
+});
+
 export const workoutTemplateExerciseSchema = z.object({
   exerciseId: z.uuid(),
   setCount: z.coerce.number().int().positive(),
+  targets: z.array(workoutTemplateExerciseTargetSchema).min(1),
 });
 
 export const workoutTemplateSchema = z.object({
@@ -51,4 +57,16 @@ export const workoutTemplateSchema = z.object({
 export const scheduleWorkoutSchema = z.object({
   templateId: z.uuid(),
   scheduledAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+});
+
+export const completedSetSchema = z.object({
+  exerciseId: z.uuid().nullable(),
+  exerciseName: z.string().min(1),
+  setNumber: z.coerce.number().int().positive(),
+  dimension: z.enum(DIMENSIONS),
+  value: z.coerce.number().nonnegative(),
+});
+
+export const completeScheduledWorkoutSchema = z.object({
+  sets: z.array(completedSetSchema).min(1),
 });

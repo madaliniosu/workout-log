@@ -6,6 +6,7 @@ import {
   real,
   timestamp,
   primaryKey,
+  foreignKey,
   boolean,
 } from 'drizzle-orm/pg-core';
 
@@ -95,6 +96,23 @@ export const workoutTemplateExercises = pgTable('workout_template_exercises', {
   exerciseOrder: integer('exercise_order').notNull(),
 });
 
+export const workoutTemplateExerciseTargets = pgTable(
+  'workout_template_exercise_targets',
+  {
+    workoutTemplateExerciseId: uuid('workout_template_exercise_id').notNull(),
+    dimension: text('dimension').notNull(),
+    targetValue: real('target_value').notNull(),
+  },
+  (table) => [
+    primaryKey({ name: 'workout_template_exercise_targets_pk', columns: [table.workoutTemplateExerciseId, table.dimension] }),
+    foreignKey({
+      name: 'workout_template_exercise_targets_fk',
+      columns: [table.workoutTemplateExerciseId],
+      foreignColumns: [workoutTemplateExercises.id],
+    }).onDelete('cascade'),
+  ],
+);
+
 export const scheduledWorkouts = pgTable('scheduled_workouts', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id')
@@ -124,6 +142,23 @@ export const scheduledWorkoutExercises = pgTable(
     setCount: integer('set_count').notNull(),
     exerciseOrder: integer('exercise_order').notNull(),
   },
+);
+
+export const scheduledWorkoutExerciseTargets = pgTable(
+  'scheduled_workout_exercise_targets',
+  {
+    scheduledWorkoutExerciseId: uuid('scheduled_workout_exercise_id').notNull(),
+    dimension: text('dimension').notNull(),
+    targetValue: real('target_value').notNull(),
+  },
+  (table) => [
+    primaryKey({ name: 'scheduled_workout_exercise_targets_pk', columns: [table.scheduledWorkoutExerciseId, table.dimension] }),
+    foreignKey({
+      name: 'scheduled_workout_exercise_targets_fk',
+      columns: [table.scheduledWorkoutExerciseId],
+      foreignColumns: [scheduledWorkoutExercises.id],
+    }).onDelete('cascade'),
+  ],
 );
 
 export const completedSets = pgTable('completed_sets', {

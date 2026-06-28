@@ -18,7 +18,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 There are no `db:*` npm scripts; drive `drizzle-kit` directly via npx, using the config in `drizzle.config.ts`:
 - `npx drizzle-kit generate` — generate SQL migrations from `src/db/schema.ts` into `./drizzle`
-- `npx drizzle-kit push` — push schema changes straight to the database (no migration files)
+- `npx drizzle-kit migrate` — apply pending migrations from `./drizzle` to the database, tracked in a `drizzle.__drizzle_migrations` table. This is the workflow actually used in this project (`generate` then `migrate`).
+- `npx drizzle-kit push` — push schema changes straight to the database, bypassing migration files entirely. Not used in this project's history — mixing it with `migrate` would desync the tracking table from the live schema.
 - `npx drizzle-kit studio` — browse the database
 
 `drizzle.config.ts` loads `DATABASE_URL` from `.env.local` via `dotenv`; the same variable is required at runtime by `src/db/index.ts`.

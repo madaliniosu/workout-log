@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-type Exercise = { id: string; name: string };
-type Row = { exerciseId: string; setCount: string };
+type Exercise = { id: string; name: string; dimensions: string[] };
+type Row = { exerciseId: string; setCount: string; targets: Record<string, string> };
 
-const emptyRow: Row = { exerciseId: '', setCount: '' };
+const emptyRow: Row = { exerciseId: '', setCount: '', targets: {} };
 
 export function NewWorkoutTemplateButton({ exercises }: { exercises: Exercise[] }) {
   const router = useRouter();
@@ -17,8 +17,14 @@ export function NewWorkoutTemplateButton({ exercises }: { exercises: Exercise[] 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  function updateRow(index: number, field: keyof Row, value: string) {
+  function updateRow(index: number, field: 'exerciseId' | 'setCount', value: string) {
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  }
+
+  function updateTarget(index: number, dimension: string, value: string) {
+    setRows((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, targets: { ...row.targets, [dimension]: value } } : row))
+    );
   }
 
   function addRow() {
@@ -47,7 +53,18 @@ export function NewWorkoutTemplateButton({ exercises }: { exercises: Exercise[] 
       body: JSON.stringify({
         name,
         notes: notes || undefined,
-        exercises: rows.map((row) => ({ exerciseId: row.exerciseId, setCount: row.setCount })),
+        exercises: rows.map((row) => {
+          const exercise = exercises.find((e) => e.id === row.exerciseId);
+          const dimensions = exercise?.dimensions ?? [];
+          return {
+            exerciseId: row.exerciseId,
+            setCount: row.setCount,
+            targets: dimensions.map((dimension) => ({
+              dimension,
+              targetValue: row.targets[dimension] ?? '',
+            })),
+          };
+        }),
       }),
     });
 
@@ -94,37 +111,61 @@ export function NewWorkoutTemplateButton({ exercises }: { exercises: Exercise[] 
                 className="border rounded p-2"
               />
 
-              {rows.map((row, index) => (
-                <div key={index} className="flex gap-2 items-center">
-                  <select
-                    value={row.exerciseId}
-                    onChange={(e) => updateRow(index, 'exerciseId', e.target.value)}
-                    required
-                    className="border rounded p-2 flex-1"
-                  >
-                    <option value="">Select exercise</option>
-                    {exercises.map((exercise) => (
-                      <option key={exercise.id} value={exercise.id}>
-                        {exercise.name}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Sets"
-                    value={row.setCount}
-                    onChange={(e) => updateRow(index, 'setCount', e.target.value)}
-                    required
-                    min={1}
-                    className="border rounded p-2 w-20"
-                  />
-                  {rows.length > 1 && (
-                    <button type="button" onClick={() => removeRow(index)} className="text-red-600 text-sm">
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
+              {rows.map((row, index) => {
+                const selectedExercise = exercises.find((e) => e.id === row.exerciseId);
+                return (
+                  <div key={index} className="flex flex-col gap-2 border-b pb-2">
+                    <div className="flex gap-2 items-center">
+                      <select
+                        value={row.exerciseId}
+                        onChange={(e) => updateRow(index, 'exerciseId', e.target.value)}
+                        required
+                        className="border rounded p-2 flex-1"
+                      >
+                        <option value="">Select exercise</option>
+                        {exercises.map((exercise) => (
+                          <option key={exercise.id} value={exercise.id}>
+                            {exercise.name}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Sets"
+                        value={row.setCount}
+                        onChange={(e) => updateRow(index, 'setCount', e.target.value)}
+                        required
+                        min={1}
+                        className="border rounded p-2 w-20"
+                      />
+                      {rows.length > 1 && (
+                        <button type="button" onClick={() => removeRow(index)} className="text-red-600 text-sm">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    {selectedExercise && selectedExercise.dimensions.length > 0 && (
+                      <div className="flex gap-2 flex-wrap pl-1">
+                        {selectedExercise.dimensions.map((dimension) => (
+                          <label key={dimension} className="text-xs flex items-center gap-1">
+                            {dimension}
+                            <input
+                              type="number"
+                              step="any"
+                              placeholder="target"
+                              value={row.targets[dimension] ?? ''}
+                              onChange={(e) => updateTarget(index, dimension, e.target.value)}
+                              required
+                              className="border rounded p-1 w-20"
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
 
               <button type="button" onClick={addRow} className="text-sm text-left underline">
                 + Add exercise
