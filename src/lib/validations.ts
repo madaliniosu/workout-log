@@ -58,3 +58,15 @@ export const scheduleWorkoutSchema = z.object({
   templateId: z.uuid(),
   scheduledAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
 });
+
+export const completedSetSchema = z.object({
+  exerciseId: z.uuid().nullable(),
+  exerciseName: z.string().min(1),
+  setNumber: z.coerce.number().int().positive(),
+  dimension: z.enum(DIMENSIONS),
+  value: z.coerce.number().nonnegative(),
+});
+
+export const completeScheduledWorkoutSchema = z.object({
+  sets: z.array(completedSetSchema).min(1),
+});
