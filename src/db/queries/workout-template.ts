@@ -72,58 +72,18 @@ export async function createWorkoutTemplate(
 }
 
 export async function getWorkoutTemplatesForUser(userId: string) {
-  const templates = await db
-    .select()
-    .from(workoutTemplates)
-    .where(eq(workoutTemplates.userId, userId))
-    .orderBy(desc(workoutTemplates.createdAt));
-
-  if (templates.length === 0) {
-    return [];
-  }
-
-  const templateExerciseRows = await db
-    .select({
-      id: workoutTemplateExercises.id,
-      templateId: workoutTemplateExercises.templateId,
-      exerciseId: workoutTemplateExercises.exerciseId,
-      exerciseName: workoutTemplateExercises.exerciseName,
-      setCount: workoutTemplateExercises.setCount,
-      exerciseOrder: workoutTemplateExercises.exerciseOrder,
-    })
-    .from(workoutTemplateExercises)
-    .where(
-      inArray(
-        workoutTemplateExercises.templateId,
-        templates.map((t) => t.id),
-      ),
-    )
-    .orderBy(workoutTemplateExercises.exerciseOrder);
-
-  const targetRows = templateExerciseRows.length
-    ? await db
-        .select()
-        .from(workoutTemplateExerciseTargets)
-        .where(
-          inArray(
-            workoutTemplateExerciseTargets.workoutTemplateExerciseId,
-            templateExerciseRows.map((r) => r.id),
-          ),
-        )
-    : [];
-
-  const exercisesWithTargets = templateExerciseRows.map((row) => ({
-    ...row,
-    targets: targetRows.filter((t) => t.workoutTemplateExerciseId === row.id),
-  }));
-
-  return templates.map((template) => ({
-    ...template,
-    exercises: exercisesWithTargets.filter(
-      (row) => row.templateId === template.id,
-    ),
-  }));
+  return db.query.workoutTemplates.findMany({
+    where: eq(workoutTemplates.userId, userId),
+    orderBy: desc(workoutTemplates.createdAt),
+    with: {
+      exercises: {
+        orderBy: workoutTemplateExercises.exerciseOrder,
+        with: { targets: true },
+      },
+    },
+  });
 }
+
 
 export async function deleteWorkoutTemplate(
   templateId: string,

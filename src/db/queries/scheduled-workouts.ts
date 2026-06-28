@@ -105,67 +105,17 @@ export async function getScheduledWorkoutsForUser(userId: string) {
 }
 
 export async function getScheduledWorkoutsWithExercisesForUser(userId: string) {
-  const scheduled = await db
-    .select({
-      id: scheduledWorkouts.id,
-      name: scheduledWorkouts.name,
-      scheduledAt: scheduledWorkouts.scheduledAt,
-      completed: scheduledWorkouts.completed,
-    })
-    .from(scheduledWorkouts)
-    .where(
-      and(
-        eq(scheduledWorkouts.userId, userId),
-        eq(scheduledWorkouts.completed, false),
-      ),
-    );
-
-  if (scheduled.length === 0) {
-    return [];
-  }
-
-  const exerciseRows = await db
-    .select({
-      id: scheduledWorkoutExercises.id,
-      scheduledWorkoutId: scheduledWorkoutExercises.scheduledWorkoutId,
-      exerciseId: scheduledWorkoutExercises.exerciseId,
-      exerciseName: scheduledWorkoutExercises.exerciseName,
-      setCount: scheduledWorkoutExercises.setCount,
-      exerciseOrder: scheduledWorkoutExercises.exerciseOrder,
-    })
-    .from(scheduledWorkoutExercises)
-    .where(
-      inArray(
-        scheduledWorkoutExercises.scheduledWorkoutId,
-        scheduled.map((w) => w.id),
-      ),
-    )
-    .orderBy(scheduledWorkoutExercises.exerciseOrder);
-
-  const targetRows = exerciseRows.length
-    ? await db
-        .select()
-        .from(scheduledWorkoutExerciseTargets)
-        .where(
-          inArray(
-            scheduledWorkoutExerciseTargets.scheduledWorkoutExerciseId,
-            exerciseRows.map((r) => r.id),
-          ),
-        )
-    : [];
-
-  const exercisesWithTargets = exerciseRows.map((row) => ({
-    ...row,
-    targets: targetRows.filter((t) => t.scheduledWorkoutExerciseId === row.id),
-  }));
-
-  return scheduled.map((workout) => ({
-    ...workout,
-    exercises: exercisesWithTargets.filter(
-      (row) => row.scheduledWorkoutId === workout.id,
-    ),
-  }));
+  return db.query.scheduledWorkouts.findMany({
+    where: and(eq(scheduledWorkouts.userId, userId), eq(scheduledWorkouts.completed, false)),
+    with: {
+      exercises: {
+        orderBy: scheduledWorkoutExercises.exerciseOrder,
+        with: { targets: true },
+      },
+    },
+  });
 }
+
 
 export async function completeScheduledWorkout(
   scheduledWorkoutId: string,
