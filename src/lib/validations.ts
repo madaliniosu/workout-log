@@ -6,8 +6,18 @@ export const signupSchema = z.object({
   password: z.string().min(8),
 });
 
-export const MUSCLE_GROUPS = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Full Body', 'Other'] as const;
-export const DIMENSIONS = ['reps', 'time', 'weight', 'rpe', 'distance'] as const;
+export const MUSCLE_GROUPS = [
+  'Chest',
+  'Back',
+  'Legs',
+  'Shoulders',
+  'Arms',
+  'Core',
+  'Full Body',
+  'Other',
+] as const;
+export const DIMENSIONS = ['reps', 'time', 'weight', 'distance'] as const;
+export const LOGGABLE_DIMENSIONS = [...DIMENSIONS, 'rpe'] as const;
 
 export const createExerciseSchema = z.object({
   name: z.string().min(1),
@@ -46,12 +56,19 @@ export const scheduleWorkoutSchema = z.object({
   scheduledAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
 });
 
-export const completedSetSchema = z.object({
-  scheduledWorkoutExerciseId: z.uuid(),
-  setNumber: z.coerce.number().int().positive(),
-  dimension: z.enum(DIMENSIONS),
-  value: z.coerce.number().nonnegative(),
-});
+export const completedSetSchema = z
+  .object({
+    scheduledWorkoutExerciseId: z.uuid(),
+    setNumber: z.coerce.number().int().positive(),
+    dimension: z.enum(LOGGABLE_DIMENSIONS),
+    value: z.coerce.number().nonnegative(),
+  })
+  .refine(
+    (data) => data.dimension !== 'rpe' || (data.value >= 1 && data.value <= 10),
+    {
+      message: 'RPE must be between 1 and 10',
+    },
+  );
 
 export const completeScheduledWorkoutSchema = z.object({
   sets: z.array(completedSetSchema).min(1),

@@ -18,6 +18,8 @@ type ScheduledWorkout = {
   exercises: ScheduledExercise[];
 };
 
+const RPE_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 1);
+
 function toDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -97,13 +99,20 @@ function WorkoutCard({
 
     const sets = workout.exercises.flatMap((exercise) =>
       Array.from({ length: exercise.setCount }, (_, i) => i + 1).flatMap(
-        (setNumber) =>
-          exercise.targets.map((target) => ({
+        (setNumber) => [
+          ...exercise.targets.map((target) => ({
             scheduledWorkoutExerciseId: exercise.id,
             setNumber,
             dimension: target.dimension,
             value: values[exercise.id]?.[setNumber]?.[target.dimension] ?? '',
           })),
+          {
+            scheduledWorkoutExerciseId: exercise.id,
+            setNumber,
+            dimension: 'rpe',
+            value: values[exercise.id]?.[setNumber]?.rpe ?? '',
+          },
+        ],
       ),
     );
 
@@ -163,66 +172,61 @@ function WorkoutCard({
                   className="flex gap-3 items-center flex-wrap text-xs border-b pb-2"
                 >
                   <span className="text-gray-500 w-12">Set {setNumber}</span>
-                  {exercise.targets.map((target) =>
-                    target.dimension === 'rpe' ? (
-                      <label
-                        key={target.dimension}
-                        className="flex items-center gap-1"
-                      >
-                        RPE
-                        <input
-                          type="number"
-                          step="any"
-                          value={
-                            values[exercise.id]?.[setNumber]?.[
-                              target.dimension
-                            ] ?? ''
-                          }
-                          onChange={(e) =>
-                            updateValue(
-                              exercise.id,
-                              setNumber,
-                              target.dimension,
-                              e.target.value,
-                            )
-                          }
-                          required
-                          className="border rounded p-1 w-16"
-                        />
-                      </label>
-                    ) : (
-                      <label
-                        key={target.dimension}
-                        className="flex items-center gap-1"
-                      >
-                        <span className="text-gray-500">
-                          Planned {labelFor(target.dimension)}:{' '}
-                          {target.targetValue}
-                          {unitFor(target.dimension)}
-                        </span>
-                        Actual {labelFor(target.dimension)}
-                        <input
-                          type="number"
-                          step="any"
-                          value={
-                            values[exercise.id]?.[setNumber]?.[
-                              target.dimension
-                            ] ?? ''
-                          }
-                          onChange={(e) =>
-                            updateValue(
-                              exercise.id,
-                              setNumber,
-                              target.dimension,
-                              e.target.value,
-                            )
-                          }
-                          required
-                          className="border rounded p-1 w-16"
-                        />
-                      </label>
-                    ),
-                  )}
+                  {exercise.targets.map((target) => (
+                    <label
+                      key={target.dimension}
+                      className="flex items-center gap-1"
+                    >
+                      <span className="text-gray-500">
+                        Planned {labelFor(target.dimension)}:{' '}
+                        {target.targetValue}
+                        {unitFor(target.dimension)}
+                      </span>
+                      Actual {labelFor(target.dimension)}
+                      <input
+                        type="number"
+                        step="any"
+                        value={
+                          values[exercise.id]?.[setNumber]?.[
+                            target.dimension
+                          ] ?? ''
+                        }
+                        onChange={(e) =>
+                          updateValue(
+                            exercise.id,
+                            setNumber,
+                            target.dimension,
+                            e.target.value,
+                          )
+                        }
+                        required
+                        className="border rounded p-1 w-16"
+                      />
+                    </label>
+                  ))}
+                  <label className="flex items-center gap-1">
+                    RPE
+                    <select
+                      value={values[exercise.id]?.[setNumber]?.rpe ?? ''}
+                      onChange={(e) =>
+                        updateValue(
+                          exercise.id,
+                          setNumber,
+                          'rpe',
+                          e.target.value,
+                        )
+                      }
+                      required
+                      className="border rounded p-1"
+                    >
+                      <option value="">-</option>
+                      {RPE_OPTIONS.map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               ),
             )}
