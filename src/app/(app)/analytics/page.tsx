@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { getPersonalRecords, getVolumeOverTime } from '@/db/queries/analytics';
-import { getExercisesForUser } from '@/db/queries/exercises';
+import {
+  getPersonalRecords,
+  getVolumeOverTime,
+  getExerciseNamesWithData,
+} from '@/db/queries/analytics';
 import { VolumeChart } from './volume-chart';
 import { ExerciseProgress } from './exercise-progress';
 
@@ -11,14 +14,14 @@ export default async function AnalyticsPage() {
     redirect('/login');
   }
 
-  const [volumeData, personalRecords, exercises] = await Promise.all([
+  const [volumeData, personalRecords, exerciseNames] = await Promise.all([
     getVolumeOverTime(session.user.id),
     getPersonalRecords(session.user.id),
-    getExercisesForUser(session.user.id),
+    getExerciseNamesWithData(session.user.id),
   ]);
 
   const chartData = volumeData.map((v) => ({
-    date: new Date(v.date).toLocaleDateString(),
+    date: new Date(v.date!).toLocaleDateString(), // completedAt is always set: this row only exists if completedSets was written, and that always sets completedAt in the same batch
     volume: v.volume,
   }));
 
@@ -30,24 +33,27 @@ export default async function AnalyticsPage() {
       {chartData.length > 0 ? (
         <VolumeChart data={chartData} />
       ) : (
-        <p className="text-gray-500 text-sm mb-6">Log a few workouts to see your volume trend.</p>
+        <p className="text-gray-500 text-sm mb-6">
+          Log a few workouts to see your volume trend.
+        </p>
       )}
 
       <h2 className="font-medium mt-8 mb-2">Personal records</h2>
       <table className="w-full text-sm">
         <tbody>
           {personalRecords.map((pr) => (
-            <tr key={pr.exerciseId} className="border-b">
+            <tr key={pr.exerciseName} className="border-b">
               <td className="py-1">{pr.exerciseName}</td>
               <td className="py-1 text-right">{pr.maxWeight}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      {personalRecords.length === 0 && <p className="text-gray-500 text-sm">No personal records yet.</p>}
-
+      {personalRecords.length === 0 && (
+        <p className="text-gray-500 text-sm">No personal records yet.</p>
+      )}
       <h2 className="font-medium mt-8 mb-2">Progress by exercise</h2>
-      <ExerciseProgress exercises={exercises} />
+      <ExerciseProgress exerciseNames={exerciseNames} />
     </div>
   );
 }
