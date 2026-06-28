@@ -43,6 +43,13 @@
       "when": 1782642925322,
       "tag": "0005_orange_shooting_star",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1782650152890,
+      "tag": "0006_massive_bloodaxe",
+      "breakpoints": true
     }
   ]
 }
