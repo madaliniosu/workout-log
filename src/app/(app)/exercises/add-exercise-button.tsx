@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { AddExerciseForm } from './add-exercise-form';
 
 export function AddExerciseButton() {
@@ -8,8 +9,12 @@ export function AddExerciseButton() {
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="bg-black text-white rounded p-2 text-sm">
-        + Add exercise
+      <button
+        onClick={() => setIsOpen(true)}
+        className="font-heading flex items-center gap-2 rounded-xl bg-[#c8ff57] px-6 py-3 text-sm font-semibold text-[#111111]"
+      >
+        <Plus size={18} strokeWidth={2} />
+        Add Exercise
       </button>
 
       {isOpen && (

@@ -13,6 +13,7 @@ export const exercises = pgTable('exercises', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: text('name').notNull(),
   muscleGroup: text('muscle_group'),
+  category: text('category').notNull(),
   userId: uuid('user_id').references(() => users.id), // null = global exercise, set = user's custom one
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
@@ -181,3 +182,5 @@ export const completedSetsRelations = relations(completedSets, ({ one }) => ({
     references: [scheduledWorkoutExercises.id],
   }),
 }));
+
+

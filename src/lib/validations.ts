@@ -16,12 +16,19 @@ export const MUSCLE_GROUPS = [
   'Full Body',
   'Other',
 ] as const;
+
 export const DIMENSIONS = ['reps', 'time', 'weight', 'distance'] as const;
+
 export const LOGGABLE_DIMENSIONS = [...DIMENSIONS, 'rpe'] as const;
+
+export const CATEGORIES = ['Strength', 'Cardio', 'Mobility', 'HIIT'] as const;
+
+
 
 export const createExerciseSchema = z.object({
   name: z.string().min(1),
   muscleGroup: z.enum(MUSCLE_GROUPS).optional(),
+  category: z.enum(CATEGORIES),
   dimensions: z.array(z.enum(DIMENSIONS)).min(1),
 });
 
@@ -73,3 +80,4 @@ export const completedSetSchema = z
 export const completeScheduledWorkoutSchema = z.object({
   sets: z.array(completedSetSchema).min(1),
 });
+

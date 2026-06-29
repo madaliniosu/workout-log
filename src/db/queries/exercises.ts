@@ -4,22 +4,19 @@ import { exercises, exerciseDimensions, hiddenExercises } from '@/db/schema';
 
 export async function createExercise(
   userId: string,
-  data: { name: string; muscleGroup?: string; dimensions: string[] },
+  data: { name: string; muscleGroup?: string; category: string; dimensions: string[] }
 ) {
   const exerciseId = crypto.randomUUID();
 
   await db.batch([
-    db
-      .insert(exercises)
-      .values({
-        id: exerciseId,
-        name: data.name,
-        muscleGroup: data.muscleGroup,
-        userId,
-      }),
-    db
-      .insert(exerciseDimensions)
-      .values(data.dimensions.map((dimension) => ({ exerciseId, dimension }))),
+    db.insert(exercises).values({
+      id: exerciseId,
+      name: data.name,
+      muscleGroup: data.muscleGroup,
+      category: data.category,
+      userId,
+    }),
+    db.insert(exerciseDimensions).values(data.dimensions.map((dimension) => ({ exerciseId, dimension }))),
   ]);
 
   return { id: exerciseId, ...data, userId };

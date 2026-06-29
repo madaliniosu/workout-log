@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MUSCLE_GROUPS, DIMENSIONS } from '@/lib/validations';
+import { MUSCLE_GROUPS, DIMENSIONS, CATEGORIES } from '@/lib/validations';
 
 const dimensionLabels: Record<string, string> = {
   reps: 'Reps',
@@ -20,7 +20,9 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
 
   function toggleDimension(dimension: string) {
     setDimensions((prev) =>
-      prev.includes(dimension) ? prev.filter((d) => d !== dimension) : [...prev, dimension]
+      prev.includes(dimension)
+        ? prev.filter((d) => d !== dimension)
+        : [...prev, dimension],
     );
   }
 
@@ -42,6 +44,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
       body: JSON.stringify({
         name: formData.get('name'),
         muscleGroup: formData.get('muscleGroup') || undefined,
+        category: formData.get('category'),
         dimensions,
       }),
     });
@@ -59,13 +62,34 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input name="name" placeholder="Exercise name" required className="border rounded p-2" />
+      <input
+        name="name"
+        placeholder="Exercise name"
+        required
+        className="border rounded p-2"
+      />
 
       <select name="muscleGroup" defaultValue="" className="border rounded p-2">
         <option value="">Muscle group (optional)</option>
         {MUSCLE_GROUPS.map((group) => (
           <option key={group} value={group}>
             {group}
+          </option>
+        ))}
+      </select>
+
+      <select
+        name="category"
+        defaultValue=""
+        required
+        className="border rounded p-2"
+      >
+        <option value="" disabled>
+          Category
+        </option>
+        {CATEGORIES.map((category) => (
+          <option key={category} value={category}>
+            {category}
           </option>
         ))}
       </select>
@@ -86,7 +110,11 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <button type="submit" disabled={pending} className="bg-black text-white rounded p-2 disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={pending}
+        className="bg-black text-white rounded p-2 disabled:opacity-50"
+      >
         {pending ? 'Adding...' : 'Add exercise'}
       </button>
     </form>
