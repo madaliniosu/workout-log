@@ -42,6 +42,7 @@ describe('createExerciseSchema', () => {
   it('allows muscleGroup to be omitted', () => {
     const result = createExerciseSchema.safeParse({
       name: 'Squat',
+      category: 'Strength',
       dimensions: ['reps'],
     });
     expect(result.success).toBe(true);
