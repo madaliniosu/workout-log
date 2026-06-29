@@ -2,29 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Plus } from 'lucide-react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { WorkoutCard } from './workout-card';
 
-type ScheduledWorkout = {
-  id: string;
-  name: string;
-  scheduledAt: string;
-  completed: boolean;
-};
+type ScheduledWorkout = { id: string; name: string; scheduledAt: string; completed: boolean };
 type Template = { id: string; name: string };
 type Target = { dimension: string; targetValue: number };
-type DetailedExercise = {
-  id: string;
-  exerciseName: string;
-  setCount: number;
-  targets: Target[];
-};
-type DetailedWorkout = {
-  id: string;
-  name: string;
-  scheduledAt: string;
-  exercises: DetailedExercise[];
-};
+type DetailedExercise = { id: string; exerciseName: string; setCount: number; targets: Target[] };
+type DetailedWorkout = { id: string; name: string; scheduledAt: string; exercises: DetailedExercise[] };
 
 function toDateKey(date: Date) {
   const year = date.getFullYear();
@@ -34,35 +20,19 @@ function toDateKey(date: Date) {
 }
 
 function getMonthGrid(monthDate: Date) {
-  const startWeekday = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth(),
-    1,
-  ).getDay();
-  const daysInMonth = new Date(
-    monthDate.getFullYear(),
-    monthDate.getMonth() + 1,
-    0,
-  ).getDate();
+  const startWeekday = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1).getDay();
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
 
   const days: Date[] = [];
   for (let i = 0; i < startWeekday; i++) {
-    days.push(
-      new Date(
-        monthDate.getFullYear(),
-        monthDate.getMonth(),
-        i - startWeekday + 1,
-      ),
-    );
+    days.push(new Date(monthDate.getFullYear(), monthDate.getMonth(), i - startWeekday + 1));
   }
   for (let day = 1; day <= daysInMonth; day++) {
     days.push(new Date(monthDate.getFullYear(), monthDate.getMonth(), day));
   }
   while (days.length % 7 !== 0) {
     const last = days[days.length - 1];
-    days.push(
-      new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1),
-    );
+    days.push(new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1));
   }
   return days;
 }
@@ -80,29 +50,25 @@ export function PlanView({
 }) {
   const router = useRouter();
   const todayKey = toDateKey(new Date());
-  const [monthDate, setMonthDate] = useState(
-    () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-  );
+  const [monthDate, setMonthDate] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [selectedDayKey, setSelectedDayKey] = useState(todayKey);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [templateId, setTemplateId] = useState('');
   const [pending, setPending] = useState(false);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const days = getMonthGrid(monthDate);
-  const isToday = selectedDayKey === todayKey;
+  const todaysIncompleteWorkouts = detailedWorkouts.filter((w) => w.scheduledAt.startsWith(todayKey));
 
   function workoutsForDay(dayKey: string) {
     return scheduledWorkouts.filter((w) => w.scheduledAt.startsWith(dayKey));
   }
 
-  function workoutForHour(dayKey: string, hour: number) {
-    const hourKey = `${dayKey}T${String(hour).padStart(2, '0')}:00`;
-    return scheduledWorkouts.find((w) => w.scheduledAt === hourKey);
-  }
-
-  function detailedWorkoutById(id: string) {
-    return detailedWorkouts.find((w) => w.id === id);
+  function workoutsForSimpleList(dayKey: string) {
+    const dayWorkouts = workoutsForDay(dayKey);
+    // Today's incomplete workouts already show in the rich widget above — avoid listing them twice here.
+    return dayKey === todayKey ? dayWorkouts.filter((w) => w.completed) : dayWorkouts;
   }
 
   async function handleSchedule(e: React.FormEvent<HTMLFormElement>) {
@@ -119,6 +85,7 @@ export function PlanView({
     setPending(false);
 
     if (res.ok) {
+      setIsScheduleOpen(false);
       setSelectedHour(null);
       setTemplateId('');
       router.refresh();
@@ -126,47 +93,48 @@ export function PlanView({
   }
 
   async function handleUnschedule(id: string) {
-    const res = await fetch(`/api/scheduled-workouts/${id}`, {
-      method: 'DELETE',
-    });
+    const res = await fetch(`/api/scheduled-workouts/${id}`, { method: 'DELETE' });
     if (res.ok) {
       router.refresh();
     }
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="px-10 pt-10">
-        <h1 className="font-heading text-[32px] font-extrabold text-black">
-          Plan
-        </h1>
+    <div className="flex flex-col gap-6 p-10">
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading text-[32px] font-extrabold text-black">Plan</h1>
+        <button
+          onClick={() => setIsScheduleOpen(true)}
+          className="font-heading flex items-center gap-2 rounded-xl bg-[#c8ff57] px-6 py-3 text-sm font-semibold text-[#111111]"
+        >
+          <Plus size={18} strokeWidth={2} />
+          Schedule Workout
+        </button>
       </div>
 
-      <div className="flex gap-6 p-10">
+      {todaysIncompleteWorkouts.length > 0 && (
+        <div className="flex flex-col gap-4">
+          <h2 className="font-heading text-lg font-semibold text-black">Today&apos;s Workout</h2>
+          {todaysIncompleteWorkouts.map((workout) => (
+            <WorkoutCard key={workout.id} workout={workout} onLogged={() => router.refresh()} />
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-6">
         <div className="flex-1">
           <div className="flex justify-between items-center mb-4">
             <button
-              onClick={() =>
-                setMonthDate(
-                  (d) => new Date(d.getFullYear(), d.getMonth() - 1, 1),
-                )
-              }
+              onClick={() => setMonthDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1))}
               className="text-sm underline"
             >
               ← Previous
             </button>
             <h2 className="font-medium">
-              {monthDate.toLocaleDateString(undefined, {
-                month: 'long',
-                year: 'numeric',
-              })}
+              {monthDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             </h2>
             <button
-              onClick={() =>
-                setMonthDate(
-                  (d) => new Date(d.getFullYear(), d.getMonth() + 1, 1),
-                )
-              }
+              onClick={() => setMonthDate((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1))}
               className="text-sm underline"
             >
               Next →
@@ -186,31 +154,21 @@ export function PlanView({
               const dayKey = toDateKey(day);
               const inMonth = day.getMonth() === monthDate.getMonth();
               const dayWorkouts = workoutsForDay(dayKey);
-              const allCompleted =
-                dayWorkouts.length > 0 && dayWorkouts.every((w) => w.completed);
+              const allCompleted = dayWorkouts.length > 0 && dayWorkouts.every((w) => w.completed);
               return (
                 <button
                   key={index}
-                  onClick={() => {
-                    setSelectedDayKey(dayKey);
-                    setSelectedHour(null);
-                  }}
+                  onClick={() => setSelectedDayKey(dayKey)}
                   className={`border rounded p-1 min-h-16 text-xs text-left ${inMonth ? '' : 'text-gray-300'} ${
-                    selectedDayKey === dayKey
-                      ? 'ring-2 ring-black'
-                      : 'hover:bg-gray-50'
+                    selectedDayKey === dayKey ? 'ring-2 ring-black' : 'hover:bg-gray-50'
                   }`}
                 >
                   <div className="text-right">
                     {day.getDate()}
-                    {dayKey === todayKey && (
-                      <span className="ml-1 text-[#c8ff57]">●</span>
-                    )}
+                    {dayKey === todayKey && <span className="ml-1 text-[#c8ff57]">●</span>}
                   </div>
                   {dayWorkouts.length > 0 && (
-                    <div
-                      className={`mt-1 text-center rounded px-1 ${allCompleted ? 'bg-green-100' : 'bg-gray-100'}`}
-                    >
+                    <div className={`mt-1 text-center rounded px-1 ${allCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
                       {dayWorkouts.length} scheduled
                     </div>
                   )}
@@ -220,67 +178,30 @@ export function PlanView({
           </div>
         </div>
 
-        <div className="w-80 shrink-0 border-l pl-4">
-          <h3 className="font-medium mb-2">
-            {isToday ? 'Today' : selectedDayKey}
-          </h3>
-          <div className="flex flex-col gap-2 max-h-[36rem] overflow-y-auto">
-            {HOURS.map((hour) => {
-              const workout = workoutForHour(selectedDayKey, hour);
-              const label = `${String(hour).padStart(2, '0')}:00`;
-
-              if (!workout) {
-                return (
-                  <div key={hour} className="flex items-center gap-2 text-sm">
-                    <span className="w-12 text-gray-500">{label}</span>
-                    <button
-                      onClick={() => setSelectedHour(hour)}
-                      className="flex-1 text-left rounded px-2 py-1 text-gray-400 hover:bg-gray-50"
-                    >
-                      + Add
-                    </button>
-                  </div>
-                );
-              }
-
-              if (isToday && !workout.completed) {
-                const detailed = detailedWorkoutById(workout.id);
-                if (detailed) {
-                  return (
-                    <div key={hour} className="flex gap-2">
-                      <span className="w-12 text-gray-500 text-sm pt-2">
-                        {label}
-                      </span>
-                      <div className="flex-1">
-                        <WorkoutCard
-                          workout={detailed}
-                          onLogged={() => router.refresh()}
-                        />
-                      </div>
-                    </div>
-                  );
-                }
-              }
-
-              return (
-                <div key={hour} className="flex items-center gap-2 text-sm">
-                  <span className="w-12 text-gray-500">{label}</span>
-                  <div
-                    className={`flex-1 flex justify-between items-center rounded px-2 py-1 ${
-                      workout.completed ? 'bg-green-100' : 'bg-gray-100'
-                    }`}
-                  >
-                    <span className="truncate">{workout.name}</span>
-                    <button
-                      onClick={() => setConfirmingId(workout.id)}
-                      className="text-red-600 ml-1"
-                    >
-                      ×
-                    </button>
-                  </div>
+        <div className="w-64 shrink-0 border-l pl-4">
+          <h3 className="font-medium mb-2">{selectedDayKey === todayKey ? 'Today' : selectedDayKey}</h3>
+          <div className="flex flex-col gap-2">
+            {workoutsForSimpleList(selectedDayKey).length === 0 && (
+              <p className="text-gray-500 text-sm">Nothing scheduled.</p>
+            )}
+            {workoutsForSimpleList(selectedDayKey)
+              .slice()
+              .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+              .map((workout) => (
+                <div
+                  key={workout.id}
+                  className={`flex justify-between items-center rounded px-2 py-1 text-sm ${
+                    workout.completed ? 'bg-green-100' : 'bg-gray-100'
+                  }`}
+                >
+                  <span className="truncate">
+                    {workout.scheduledAt.slice(11)} — {workout.name}
+                  </span>
+                  <button onClick={() => setConfirmingId(workout.id)} className="text-red-600 ml-2">
+                    ×
+                  </button>
                 </div>
-              );
-            })}
+              ))}
           </div>
         </div>
       </div>
@@ -296,19 +217,13 @@ export function PlanView({
         onCancel={() => setConfirmingId(null)}
       />
 
-      {selectedHour !== null && (
+      {isScheduleOpen && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => setSelectedHour(null)}
+          onClick={() => setIsScheduleOpen(false)}
         >
-          <div
-            className="bg-white rounded p-4 w-full max-w-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="font-medium mb-3">
-              Schedule a workout — {selectedDayKey}{' '}
-              {String(selectedHour).padStart(2, '0')}:00
-            </h3>
+          <div className="bg-white rounded p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-medium mb-3">Schedule a workout — {selectedDayKey}</h3>
             <form onSubmit={handleSchedule} className="flex flex-col gap-3">
               <select
                 value={templateId}
@@ -323,11 +238,20 @@ export function PlanView({
                   </option>
                 ))}
               </select>
-              <button
-                type="submit"
-                disabled={pending}
-                className="bg-black text-white rounded p-2 disabled:opacity-50"
+              <select
+                value={selectedHour ?? ''}
+                onChange={(e) => setSelectedHour(e.target.value === '' ? null : Number(e.target.value))}
+                required
+                className="border rounded p-2"
               >
+                <option value="">Select hour</option>
+                {HOURS.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {String(hour).padStart(2, '0')}:00
+                  </option>
+                ))}
+              </select>
+              <button type="submit" disabled={pending} className="bg-black text-white rounded p-2 disabled:opacity-50">
                 {pending ? 'Scheduling...' : 'Schedule'}
               </button>
             </form>
