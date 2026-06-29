@@ -62,7 +62,7 @@ export function LoginForm() {
           </button>
 
           <p className="flex items-center justify-center gap-2 text-sm">
-            <span className="text-[#666]">Don't have an account?</span>
+            <span className="text-[#666]">Don&apos;t have an account?</span>
             <Link href="/signup" className="font-heading font-semibold text-[#111111]">
               Sign up
             </Link>
