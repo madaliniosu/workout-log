@@ -1,20 +1,29 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Pencil, X } from 'lucide-react';
 import { AddExerciseForm } from './add-exercise-form';
 
-export function AddExerciseButton() {
+type Exercise = {
+  id: string;
+  name: string;
+  muscleGroup: string | null;
+  category: string;
+  dimensions: string[];
+};
+
+export function EditExerciseButton({ exercise }: { exercise: Exercise }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="font-heading flex items-center gap-2 rounded-xl bg-[#c8ff57] px-6 py-3 text-sm font-semibold text-[#111111]"
+        aria-label="Edit exercise"
+        className="text-gray-300 hover:text-[#111111]"
       >
-        <Plus size={18} strokeWidth={2} />
-        Add Exercise
+       <Pencil size={16} strokeWidth={2} />
       </button>
 
       {isOpen && (
@@ -31,8 +40,8 @@ export function AddExerciseButton() {
             >
               <X size={20} strokeWidth={2} />
             </button>
-            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">Add Exercise</h2>
-            <AddExerciseForm onSuccess={() => setIsOpen(false)} />
+            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">Edit Exercise</h2>
+            <AddExerciseForm exercise={exercise} onSuccess={() => setIsOpen(false)} />
           </div>
         </div>
       )}

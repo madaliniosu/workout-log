@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 export function DeleteWorkoutTemplateButton({ templateId }: { templateId: string }) {
   const router = useRouter();
+  const [isConfirming, setIsConfirming] = useState(false);
 
   async function handleDelete() {
-    if (!confirm('Delete this workout?')) return;
-
+    setIsConfirming(false);
     const res = await fetch(`/api/workout-templates/${templateId}`, { method: 'DELETE' });
     if (res.ok) {
       router.refresh();
@@ -15,8 +17,18 @@ export function DeleteWorkoutTemplateButton({ templateId }: { templateId: string
   }
 
   return (
-    <button type="button" onClick={handleDelete} className="text-red-600 text-sm">
-      Delete
-    </button>
+    <>
+      <button type="button" onClick={() => setIsConfirming(true)} className="text-red-600 text-sm">
+        Delete
+      </button>
+
+      <ConfirmDialog
+        open={isConfirming}
+        title="Delete workout?"
+        message="This can't be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setIsConfirming(false)}
+      />
+    </>
   );
 }
