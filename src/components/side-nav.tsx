@@ -3,15 +3,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Dumbbell, BookOpen, Calendar, History, BarChart3, User } from 'lucide-react';
+import { Home, Dumbbell, BookOpen, Calendar, BarChart3, User } from 'lucide-react';
 
 const links = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/workouts', label: 'Workouts', icon: Dumbbell },
   { href: '/exercises', label: 'Exercises', icon: BookOpen },
   { href: '/calendar', label: 'Schedule', icon: Calendar },
-  { href: '/history', label: 'History', icon: History },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/progress', label: 'Progress', icon: BarChart3 },
   { href: '/settings', label: 'Profile', icon: User },
 ];
 
