@@ -11,5 +11,5 @@ export default async function ExercisesPage() {
 
   const exercises = await getExercisesForUser(session.user.id);
 
-  return <ExercisesContent exercises={exercises} />;
+return <ExercisesContent exercises={exercises} userId={session.user.id} />;
 }

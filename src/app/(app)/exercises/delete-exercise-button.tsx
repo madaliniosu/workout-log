@@ -16,12 +16,7 @@ export function DeleteExerciseButton({ exerciseId }: { exerciseId: string }) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleDelete}
-      aria-label="Delete exercise"
-      className="absolute top-3 right-3 text-gray-300 hover:text-red-500"
-    >
+    <button type="button" onClick={handleDelete} aria-label="Delete exercise" className="text-gray-300 hover:text-red-500">
       <Trash2 size={16} strokeWidth={2} />
     </button>
   );

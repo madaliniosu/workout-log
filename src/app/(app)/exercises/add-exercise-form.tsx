@@ -11,11 +11,19 @@ const dimensionLabels: Record<string, string> = {
   distance: 'Distance',
 };
 
-export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
+type ExistingExercise = {
+  id: string;
+  name: string;
+  muscleGroup: string | null;
+  category: string;
+  dimensions: string[];
+};
+
+export function AddExerciseForm({ exercise, onSuccess }: { exercise?: ExistingExercise; onSuccess: () => void }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [dimensions, setDimensions] = useState<string[]>([]);
+  const [dimensions, setDimensions] = useState<string[]>(exercise?.dimensions ?? []);
 
   function toggleDimension(dimension: string) {
     setDimensions((prev) =>
@@ -35,8 +43,8 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const res = await fetch('/api/exercises', {
-      method: 'POST',
+    const res = await fetch(exercise ? `/api/exercises/${exercise.id}` : '/api/exercises', {
+      method: exercise ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: formData.get('name'),
@@ -66,6 +74,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
         <input
           id="name"
           name="name"
+          defaultValue={exercise?.name}
           placeholder="Bench Press"
           required
           className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] placeholder:text-[#666] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
@@ -80,7 +89,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
           <select
             id="category"
             name="category"
-            defaultValue=""
+            defaultValue={exercise?.category ?? ''}
             required
             className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
           >
@@ -102,7 +111,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
           <select
             id="muscleGroup"
             name="muscleGroup"
-            defaultValue=""
+            defaultValue={exercise?.muscleGroup ?? ''}
             className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
           >
             <option value="">Optional</option>
@@ -143,7 +152,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
         disabled={pending}
         className="font-heading h-[60px] rounded-2xl bg-[#c8ff57] text-lg font-semibold text-[#111111] disabled:opacity-50"
       >
-        {pending ? 'Adding...' : 'Add Exercise'}
+        {pending ? (exercise ? 'Saving...' : 'Adding...') : exercise ? 'Save Changes' : 'Add Exercise'}
       </button>
     </form>
   );

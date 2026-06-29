@@ -5,6 +5,16 @@ import { Search } from 'lucide-react';
 import { CATEGORIES } from '@/lib/validations';
 import { AddExerciseButton } from './add-exercise-button';
 import { DeleteExerciseButton } from './delete-exercise-button';
+import { EditExerciseButton } from './edit-exercise-button';
+
+type Exercise = {
+  id: string;
+  name: string;
+  muscleGroup: string | null;
+  category: string;
+  dimensions: string[];
+  userId: string | null;
+};
 
 const CATEGORY_COLORS: Record<string, string> = {
   Strength: '#c8ff57',
@@ -13,15 +23,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   HIIT: '#4f70fa',
 };
 
-type Exercise = {
-  id: string;
-  name: string;
-  muscleGroup: string | null;
-  category: string;
-  dimensions: string[];
-};
-
-export function ExercisesContent({ exercises }: { exercises: Exercise[] }) {
+export function ExercisesContent({
+  exercises,
+  userId,
+}: {
+  exercises: Exercise[];
+  userId: string;
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -110,7 +118,12 @@ export function ExercisesContent({ exercises }: { exercises: Exercise[] }) {
                 {exercise.name}
               </p>
             </div>
-            <DeleteExerciseButton exerciseId={exercise.id} />
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              {exercise.userId === userId && (
+                <EditExerciseButton exercise={exercise} />
+              )}
+              <DeleteExerciseButton exerciseId={exercise.id} />
+            </div>
           </div>
         ))}
       </div>
