@@ -246,7 +246,7 @@ export function CalendarView({
 
       {selectedHour !== null && selectedDayKey && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black-50 flex items-center justify-center p-4"
           onClick={() => setSelectedHour(null)}
         >
           <div

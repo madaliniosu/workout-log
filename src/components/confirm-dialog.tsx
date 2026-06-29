@@ -18,7 +18,7 @@ export function ConfirmDialog({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onCancel}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black50 p-4" onClick={onCancel}>
       <div className="w-full max-w-sm rounded-3xl bg-white p-8" onClick={(e) => e.stopPropagation()}>
         <h2 className="font-heading text-xl font-extrabold text-[#111111]">{title}</h2>
         <p className="mt-2 text-sm text-[#666]">{message}</p>
