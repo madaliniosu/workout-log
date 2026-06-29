@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { Pencil, X } from 'lucide-react';
-import { AddExerciseForm } from './add-exercise-form';
+import { WorkoutTemplateForm } from './workout-template-form';
 
-type Exercise = {
+type Template = {
   id: string;
   name: string;
-  muscleGroup: string | null;
-  category: string;
-  dimensions: string[];
+  notes: string | null;
+  exercises: { exerciseId: string | null; setCount: number; targets: { dimension: string; targetValue: number }[] }[];
 };
+type Exercise = { id: string; name: string; dimensions: string[] };
 
-export function EditExerciseButton({ exercise }: { exercise: Exercise }) {
+export function EditWorkoutTemplateButton({ template, exercises }: { template: Template; exercises: Exercise[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -20,7 +20,7 @@ export function EditExerciseButton({ exercise }: { exercise: Exercise }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        aria-label="Edit exercise"
+        aria-label="Edit workout"
         className="text-gray-300 hover:text-[#111111]"
       >
         <Pencil size={16} strokeWidth={2} />
@@ -32,7 +32,7 @@ export function EditExerciseButton({ exercise }: { exercise: Exercise }) {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="relative w-full max-w-md rounded-3xl bg-white p-8"
+            className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -43,13 +43,8 @@ export function EditExerciseButton({ exercise }: { exercise: Exercise }) {
             >
               <X size={20} strokeWidth={2} />
             </button>
-            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">
-              Edit Exercise
-            </h2>
-            <AddExerciseForm
-              exercise={exercise}
-              onSuccess={() => setIsOpen(false)}
-            />
+            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">Edit Workout</h2>
+            <WorkoutTemplateForm template={template} exercises={exercises} onSuccess={() => setIsOpen(false)} />
           </div>
         </div>
       )}
