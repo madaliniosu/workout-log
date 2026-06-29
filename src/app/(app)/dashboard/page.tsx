@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import { getUserById } from '@/db/queries/users';
-import { getScheduledWorkoutsWithExercisesForUser } from '@/db/queries/scheduled-workouts';
-import { TodayWorkouts } from './today-workouts';
+import { getScheduledWorkoutsForUser, getScheduledWorkoutsWithExercisesForUser } from '@/db/queries/scheduled-workouts';
+import { getWorkoutTemplatesForUser } from '@/db/queries/workout-template';
+import { PlanView } from './plan-view';
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -10,15 +10,17 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const [user, scheduledWorkouts] = await Promise.all([
-    getUserById(session.user.id),
+  const [scheduledWorkouts, detailedWorkouts, templates] = await Promise.all([
+    getScheduledWorkoutsForUser(session.user.id),
     getScheduledWorkoutsWithExercisesForUser(session.user.id),
+    getWorkoutTemplatesForUser(session.user.id),
   ]);
 
   return (
-    <div className="max-w-2xl mx-auto mt-20">
-      <h1 className="text-xl font-semibold mb-6">Welcome, {user.name}</h1>
-      <TodayWorkouts workouts={scheduledWorkouts} />
-    </div>
+    <PlanView
+      scheduledWorkouts={scheduledWorkouts}
+      detailedWorkouts={detailedWorkouts}
+      templates={templates.map((t) => ({ id: t.id, name: t.name }))}
+    />
   );
 }

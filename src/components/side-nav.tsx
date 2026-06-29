@@ -3,13 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Dumbbell, BookOpen, Calendar, BarChart3, User } from 'lucide-react';
+import { Calendar, Dumbbell, BookOpen, BarChart3, User } from 'lucide-react';
 
 const links = [
-  { href: '/dashboard', label: 'Home', icon: Home },
+  { href: '/dashboard', label: 'Plan', icon: Calendar },
   { href: '/workouts', label: 'Workouts', icon: Dumbbell },
   { href: '/exercises', label: 'Exercises', icon: BookOpen },
-  { href: '/calendar', label: 'Schedule', icon: Calendar },
   { href: '/progress', label: 'Progress', icon: BarChart3 },
   { href: '/settings', label: 'Profile', icon: User },
 ];
