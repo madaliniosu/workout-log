@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, desc } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   completedSets,
@@ -174,4 +174,20 @@ export async function deleteScheduledWorkout(
     .returning({ id: scheduledWorkouts.id });
 
   return result.length > 0;
+}
+
+export async function getWorkoutHistoryForUser(userId: string) {
+  return db.query.scheduledWorkouts.findMany({
+    where: and(eq(scheduledWorkouts.userId, userId), eq(scheduledWorkouts.completed, true)),
+    orderBy: desc(scheduledWorkouts.completedAt),
+    with: {
+      exercises: {
+        orderBy: scheduledWorkoutExercises.exerciseOrder,
+        with: {
+          targets: true,
+          completedSets: true,
+        },
+      },
+    },
+  });
 }
