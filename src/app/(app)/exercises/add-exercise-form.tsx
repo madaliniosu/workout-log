@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MUSCLE_GROUPS, DIMENSIONS, CATEGORIES } from '@/lib/validations';
+import { MUSCLE_GROUPS, CATEGORIES, DIMENSIONS } from '@/lib/validations';
 
 const dimensionLabels: Record<string, string> = {
   reps: 'Reps',
   time: 'Time',
   weight: 'Weight',
-  rpe: 'RPE',
   distance: 'Distance',
 };
 
@@ -20,9 +19,7 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
 
   function toggleDimension(dimension: string) {
     setDimensions((prev) =>
-      prev.includes(dimension)
-        ? prev.filter((d) => d !== dimension)
-        : [...prev, dimension],
+      prev.includes(dimension) ? prev.filter((d) => d !== dimension) : [...prev, dimension]
     );
   }
 
@@ -61,61 +58,92 @@ export function AddExerciseForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <input
-        name="name"
-        placeholder="Exercise name"
-        required
-        className="border rounded p-2"
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <label htmlFor="name" className="font-heading text-sm font-semibold text-[#111111]">
+          Exercise Name
+        </label>
+        <input
+          id="name"
+          name="name"
+          placeholder="Bench Press"
+          required
+          className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] placeholder:text-[#666] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
+        />
+      </div>
 
-      <select name="muscleGroup" defaultValue="" className="border rounded p-2">
-        <option value="">Muscle group (optional)</option>
-        {MUSCLE_GROUPS.map((group) => (
-          <option key={group} value={group}>
-            {group}
-          </option>
-        ))}
-      </select>
-
-      <select
-        name="category"
-        defaultValue=""
-        required
-        className="border rounded p-2"
-      >
-        <option value="" disabled>
-          Category
-        </option>
-        {CATEGORIES.map((category) => (
-          <option key={category} value={category}>
-            {category}
-          </option>
-        ))}
-      </select>
-
-      <fieldset className="flex flex-col gap-1">
-        <legend className="text-sm font-medium mb-1">Tracks</legend>
-        {DIMENSIONS.map((dimension) => (
-          <label key={dimension} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={dimensions.includes(dimension)}
-              onChange={() => toggleDimension(dimension)}
-            />
-            {dimensionLabels[dimension]}
+      <div className="flex gap-4">
+        <div className="flex flex-1 flex-col gap-2">
+          <label htmlFor="category" className="font-heading text-sm font-semibold text-[#111111]">
+            Category
           </label>
-        ))}
-      </fieldset>
+          <select
+            id="category"
+            name="category"
+            defaultValue=""
+            required
+            className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
+          >
+            <option value="" disabled>
+              Select category
+            </option>
+            {CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+        <div className="flex flex-1 flex-col gap-2">
+          <label htmlFor="muscleGroup" className="font-heading text-sm font-semibold text-[#111111]">
+            Muscle Group
+          </label>
+          <select
+            id="muscleGroup"
+            name="muscleGroup"
+            defaultValue=""
+            className="h-14 rounded-xl border border-[#e5e5e5] px-4 text-base text-[#111111] focus:outline-none focus:ring-2 focus:ring-[#c8ff57]"
+          >
+            <option value="">Optional</option>
+            {MUSCLE_GROUPS.map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="font-heading text-sm font-semibold text-[#111111]">Tracks</span>
+        <div className="flex flex-wrap gap-2">
+          {DIMENSIONS.map((dimension) => {
+            const isSelected = dimensions.includes(dimension);
+            return (
+              <button
+                key={dimension}
+                type="button"
+                onClick={() => toggleDimension(dimension)}
+                className={`font-heading rounded-full border px-4 py-2 text-sm font-semibold ${
+                  isSelected ? 'border-[#111111] bg-[#111111] text-white' : 'border-[#e5e5e5] bg-white text-[#666]'
+                }`}
+              >
+                {dimensionLabels[dimension]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="bg-black text-white rounded p-2 disabled:opacity-50"
+        className="font-heading h-[60px] rounded-2xl bg-[#c8ff57] text-lg font-semibold text-[#111111] disabled:opacity-50"
       >
-        {pending ? 'Adding...' : 'Add exercise'}
+        {pending ? 'Adding...' : 'Add Exercise'}
       </button>
     </form>
   );

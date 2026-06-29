@@ -11,7 +11,7 @@ const defaultExercises = [
   { name: 'Bicep Curl', muscleGroup: 'Arms', category: 'Strength' },
   { name: 'Tricep Extension', muscleGroup: 'Arms', category: 'Strength' },
   { name: 'Leg Press', muscleGroup: 'Legs', category: 'Strength' },
-  { name: 'Plank', muscleGroup: 'Core', category: 'Flexibility' },
+  { name: 'Plank', muscleGroup: 'Core', category: 'Mobility' },
 ];
 
 

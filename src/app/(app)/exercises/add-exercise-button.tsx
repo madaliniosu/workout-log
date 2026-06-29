@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { AddExerciseForm } from './add-exercise-form';
 
 export function AddExerciseButton() {
@@ -19,11 +19,19 @@ export function AddExerciseButton() {
 
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setIsOpen(false)}
         >
-          <div className="bg-white text-gray-500 rounded p-4 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-medium mb-3">Add a custom exercise</h2>
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-8" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close"
+              className="absolute top-6 right-6 text-gray-400 hover:text-[#111111]"
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
+            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">Add Exercise</h2>
             <AddExerciseForm onSuccess={() => setIsOpen(false)} />
           </div>
         </div>

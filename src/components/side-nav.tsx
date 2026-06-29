@@ -19,7 +19,7 @@ export function SideNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex h-full w-[260px] shrink-0 flex-col gap-10 border-r border-[#e5e5e5] bg-white p-8">
+    <nav className="flex h-full w-[260px] shrink-0 flex-col gap-10 bg-white p-8">
       <div className="flex items-center gap-3">
         <Image src="/Logo-BeFitus.svg" alt="" width={32} height={32} />
         <span className="font-heading text-2xl font-extrabold text-black">BeFitus</span>
