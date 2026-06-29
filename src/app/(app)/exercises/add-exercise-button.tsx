@@ -19,10 +19,13 @@ export function AddExerciseButton() {
 
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black-50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           onClick={() => setIsOpen(false)}
         >
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-8" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="relative w-full max-w-md rounded-3xl bg-white p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               onClick={() => setIsOpen(false)}
@@ -31,7 +34,9 @@ export function AddExerciseButton() {
             >
               <X size={20} strokeWidth={2} />
             </button>
-            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">Add Exercise</h2>
+            <h2 className="font-heading text-2xl font-extrabold text-[#111111] mb-6">
+              Add Exercise
+            </h2>
             <AddExerciseForm onSuccess={() => setIsOpen(false)} />
           </div>
         </div>

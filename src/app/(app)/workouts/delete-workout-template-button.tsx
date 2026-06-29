@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 
 export function DeleteWorkoutTemplateButton({ templateId }: { templateId: string }) {
@@ -18,8 +19,13 @@ export function DeleteWorkoutTemplateButton({ templateId }: { templateId: string
 
   return (
     <>
-      <button type="button" onClick={() => setIsConfirming(true)} className="text-red-600 text-sm">
-        Delete
+      <button
+        type="button"
+        onClick={() => setIsConfirming(true)}
+        aria-label="Delete workout"
+        className="text-gray-300 hover:text-red-500"
+      >
+        <Trash2 size={16} strokeWidth={2} />
       </button>
 
       <ConfirmDialog
