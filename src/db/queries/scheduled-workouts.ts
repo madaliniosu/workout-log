@@ -191,3 +191,79 @@ export async function getWorkoutHistoryForUser(userId: string) {
     },
   });
 }
+
+export async function logAdHocWorkoutSession(
+  userId: string,
+  data: {
+    name: string;
+    exercises: {
+      exerciseId: string | null;
+      exerciseName: string;
+      exerciseOrder: number;
+      plannedTargets: { dimension: string; targetValue: number }[];
+      sets: Record<string, number>[];
+    }[];
+  }
+) {
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const scheduledWorkoutId = crypto.randomUUID();
+
+  const exerciseRows = data.exercises.map((exercise) => ({
+    id: crypto.randomUUID(),
+    exerciseId: exercise.exerciseId,
+    exerciseName: exercise.exerciseName,
+    setCount: exercise.sets.length,
+    exerciseOrder: exercise.exerciseOrder,
+  }));
+
+  const targetRows = data.exercises.flatMap((exercise, idx) =>
+    exercise.plannedTargets.map((target) => ({
+      scheduledWorkoutExerciseId: exerciseRows[idx].id,
+      dimension: target.dimension,
+      targetValue: target.targetValue,
+    }))
+  );
+
+  const completedSetRows = data.exercises.flatMap((exercise, idx) =>
+    exercise.sets.flatMap((setActuals, setIndex) =>
+      Object.entries(setActuals).map(([dimension, value]) => ({
+        scheduledWorkoutExerciseId: exerciseRows[idx].id,
+        setNumber: setIndex + 1,
+        dimension,
+        value,
+      }))
+    )
+  );
+
+  await db.insert(scheduledWorkouts).values({
+    id: scheduledWorkoutId,
+    userId,
+    templateId: null,
+    name: data.name,
+    scheduledAt: `${todayKey}T00:00`,
+    completed: true,
+    completedAt: today,
+  });
+
+  await db.insert(scheduledWorkoutExercises).values(
+    exerciseRows.map(({ id, exerciseId, exerciseName, setCount, exerciseOrder }) => ({
+      id,
+      scheduledWorkoutId,
+      exerciseId,
+      exerciseName,
+      setCount,
+      exerciseOrder,
+    }))
+  );
+
+  if (targetRows.length > 0) {
+    await db.insert(scheduledWorkoutExerciseTargets).values(targetRows);
+  }
+
+  if (completedSetRows.length > 0) {
+    await db.insert(completedSets).values(completedSetRows);
+  }
+
+  return scheduledWorkoutId;
+}

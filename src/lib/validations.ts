@@ -81,3 +81,23 @@ export const completeScheduledWorkoutSchema = z.object({
   sets: z.array(completedSetSchema).min(1),
 });
 
+
+export const logWorkoutSessionSchema = z.object({
+  name: z.string().min(1),
+  exercises: z
+    .array(
+      z.object({
+        exerciseId: z.uuid().nullable(),
+        exerciseName: z.string().min(1),
+        exerciseOrder: z.coerce.number().int().nonnegative(),
+        plannedTargets: z.array(
+          z.object({
+            dimension: z.enum(DIMENSIONS),
+            targetValue: z.coerce.number().nonnegative(),
+          })
+        ),
+        sets: z.array(z.record(z.string(), z.coerce.number())),
+      })
+    )
+    .min(1),
+});
