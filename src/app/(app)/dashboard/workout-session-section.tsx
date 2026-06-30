@@ -32,7 +32,6 @@ export type SessionExercise = {
   sets: SetRow[];
 };
 
-
 function newSetRow(): SetRow {
   return { key: crypto.randomUUID(), actuals: {} };
 }
@@ -49,9 +48,11 @@ export function WorkoutSessionSection({
   );
   const [isSelectWorkoutOpen, setIsSelectWorkoutOpen] = useState(false);
   const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
-  
+
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function removeExercise(key: string) {
     setSessionExercises((prev) => prev.filter((e) => e.key !== key));
@@ -114,12 +115,16 @@ export function WorkoutSessionSection({
 
   async function handleSaveSession() {
     if (sessionExercises.length === 0) return;
+    const d = new Date();
+    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     setSaving(true);
+    setSaveError(null);
     const res = await fetch('/api/workout-sessions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'Workout Session',
+        date,
         exercises: sessionExercises.map((ex, idx) => ({
           exerciseId: ex.exerciseId,
           exerciseName: ex.exerciseName,
@@ -144,6 +149,8 @@ export function WorkoutSessionSection({
     if (res.ok) {
       setSessionExercises([]);
       router.refresh();
+    } else {
+      setSaveError('Failed to save session. Please try again.');
     }
   }
 
@@ -220,14 +227,17 @@ export function WorkoutSessionSection({
       ))}
 
       {sessionExercises.length > 0 && (
-        <button
-          type="button"
-          onClick={handleSaveSession}
-          disabled={saving}
-          className="font-heading w-full rounded-xl bg-[#c8ff57] py-3 text-sm font-semibold text-[#111111] disabled:opacity-40"
-        >
-          {saving ? 'Saving...' : 'Save Session'}
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={handleSaveSession}
+            disabled={saving}
+            className="font-heading w-full rounded-xl bg-[#c8ff57] py-3 text-sm font-semibold text-[#111111] disabled:opacity-40"
+          >
+            {saving ? 'Saving...' : 'Save Session'}
+          </button>
+          {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+        </>
       )}
 
       <div className="flex gap-3">

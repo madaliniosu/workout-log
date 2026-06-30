@@ -23,8 +23,6 @@ export const LOGGABLE_DIMENSIONS = [...DIMENSIONS, 'rpe'] as const;
 
 export const CATEGORIES = ['Strength', 'Cardio', 'Mobility', 'HIIT'] as const;
 
-
-
 export const createExerciseSchema = z.object({
   name: z.string().min(1),
   muscleGroup: z.enum(MUSCLE_GROUPS).optional(),
@@ -84,6 +82,7 @@ export const completeScheduledWorkoutSchema = z.object({
 
 export const logWorkoutSessionSchema = z.object({
   name: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   exercises: z
     .array(
       z.object({
@@ -96,8 +95,9 @@ export const logWorkoutSessionSchema = z.object({
             targetValue: z.coerce.number().nonnegative(),
           })
         ),
-        sets: z.array(z.record(z.string(), z.coerce.number())),
+        sets: z.array(z.record(z.enum(LOGGABLE_DIMENSIONS), z.coerce.number())).min(1),
       })
     )
     .min(1),
 });
+

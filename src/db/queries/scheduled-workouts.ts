@@ -11,11 +11,19 @@ import {
   workoutTemplateExerciseTargets,
 } from '@/db/schema';
 
-export async function createScheduledWorkout(userId: string, data: { templateId: string; scheduledAt: string }) {
+export async function createScheduledWorkout(
+  userId: string,
+  data: { templateId: string; scheduledAt: string },
+) {
   const [template] = await db
     .select()
     .from(workoutTemplates)
-    .where(and(eq(workoutTemplates.id, data.templateId), eq(workoutTemplates.userId, userId)));
+    .where(
+      and(
+        eq(workoutTemplates.id, data.templateId),
+        eq(workoutTemplates.userId, userId),
+      ),
+    );
 
   if (!template) {
     return null;
@@ -41,8 +49,8 @@ export async function createScheduledWorkout(userId: string, data: { templateId:
         .where(
           inArray(
             workoutTemplateExerciseTargets.workoutTemplateExerciseId,
-            templateExercises.map((e) => e.id)
-          )
+            templateExercises.map((e) => e.id),
+          ),
         )
     : [];
 
@@ -66,31 +74,35 @@ export async function createScheduledWorkout(userId: string, data: { templateId:
       scheduledAt: data.scheduledAt,
     }),
     db.insert(scheduledWorkoutExercises).values(
-      scheduledExercises.map(({ id, exerciseId, exerciseName, setCount, exerciseOrder }) => ({
-        id,
-        scheduledWorkoutId,
-        exerciseId,
-        exerciseName,
-        setCount,
-        exerciseOrder,
-      }))
+      scheduledExercises.map(
+        ({ id, exerciseId, exerciseName, setCount, exerciseOrder }) => ({
+          id,
+          scheduledWorkoutId,
+          exerciseId,
+          exerciseName,
+          setCount,
+          exerciseOrder,
+        }),
+      ),
     ),
     db.insert(scheduledWorkoutExerciseTargets).values(
       scheduledExercises.flatMap((exercise) =>
         templateTargetRows
-          .filter((target) => target.workoutTemplateExerciseId === exercise.templateExerciseId)
+          .filter(
+            (target) =>
+              target.workoutTemplateExerciseId === exercise.templateExerciseId,
+          )
           .map((target) => ({
             scheduledWorkoutExerciseId: exercise.id,
             dimension: target.dimension,
             targetValue: target.targetValue,
-          }))
-      )
+          })),
+      ),
     ),
   ]);
 
   return scheduledWorkoutId;
 }
-
 
 export async function getScheduledWorkoutsForUser(userId: string) {
   return db
@@ -106,7 +118,10 @@ export async function getScheduledWorkoutsForUser(userId: string) {
 
 export async function getScheduledWorkoutsWithExercisesForUser(userId: string) {
   return db.query.scheduledWorkouts.findMany({
-    where: and(eq(scheduledWorkouts.userId, userId), eq(scheduledWorkouts.completed, false)),
+    where: and(
+      eq(scheduledWorkouts.userId, userId),
+      eq(scheduledWorkouts.completed, false),
+    ),
     with: {
       exercises: {
         orderBy: scheduledWorkoutExercises.exerciseOrder,
@@ -116,16 +131,25 @@ export async function getScheduledWorkoutsWithExercisesForUser(userId: string) {
   });
 }
 
-
 export async function completeScheduledWorkout(
   scheduledWorkoutId: string,
   userId: string,
-  sets: { scheduledWorkoutExerciseId: string; setNumber: number; dimension: string; value: number }[]
+  sets: {
+    scheduledWorkoutExerciseId: string;
+    setNumber: number;
+    dimension: string;
+    value: number;
+  }[],
 ) {
   const [workout] = await db
     .select({ id: scheduledWorkouts.id })
     .from(scheduledWorkouts)
-    .where(and(eq(scheduledWorkouts.id, scheduledWorkoutId), eq(scheduledWorkouts.userId, userId)));
+    .where(
+      and(
+        eq(scheduledWorkouts.id, scheduledWorkoutId),
+        eq(scheduledWorkouts.userId, userId),
+      ),
+    );
 
   if (!workout) {
     return false;
@@ -134,10 +158,14 @@ export async function completeScheduledWorkout(
   const validExerciseRows = await db
     .select({ id: scheduledWorkoutExercises.id })
     .from(scheduledWorkoutExercises)
-    .where(eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkoutId));
+    .where(
+      eq(scheduledWorkoutExercises.scheduledWorkoutId, scheduledWorkoutId),
+    );
   const validExerciseIds = new Set(validExerciseRows.map((r) => r.id));
 
-  if (sets.some((set) => !validExerciseIds.has(set.scheduledWorkoutExerciseId))) {
+  if (
+    sets.some((set) => !validExerciseIds.has(set.scheduledWorkoutExerciseId))
+  ) {
     return false;
   }
 
@@ -148,7 +176,7 @@ export async function completeScheduledWorkout(
         setNumber: set.setNumber,
         dimension: set.dimension,
         value: set.value,
-      }))
+      })),
     ),
     db
       .update(scheduledWorkouts)
@@ -178,7 +206,10 @@ export async function deleteScheduledWorkout(
 
 export async function getWorkoutHistoryForUser(userId: string) {
   return db.query.scheduledWorkouts.findMany({
-    where: and(eq(scheduledWorkouts.userId, userId), eq(scheduledWorkouts.completed, true)),
+    where: and(
+      eq(scheduledWorkouts.userId, userId),
+      eq(scheduledWorkouts.completed, true),
+    ),
     orderBy: desc(scheduledWorkouts.completedAt),
     with: {
       exercises: {
@@ -196,6 +227,7 @@ export async function logAdHocWorkoutSession(
   userId: string,
   data: {
     name: string;
+    date: string;
     exercises: {
       exerciseId: string | null;
       exerciseName: string;
@@ -203,10 +235,9 @@ export async function logAdHocWorkoutSession(
       plannedTargets: { dimension: string; targetValue: number }[];
       sets: Record<string, number>[];
     }[];
-  }
+  },
 ) {
   const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const scheduledWorkoutId = crypto.randomUUID();
 
   const exerciseRows = data.exercises.map((exercise) => ({
@@ -222,7 +253,7 @@ export async function logAdHocWorkoutSession(
       scheduledWorkoutExerciseId: exerciseRows[idx].id,
       dimension: target.dimension,
       targetValue: target.targetValue,
-    }))
+    })),
   );
 
   const completedSetRows = data.exercises.flatMap((exercise, idx) =>
@@ -232,38 +263,41 @@ export async function logAdHocWorkoutSession(
         setNumber: setIndex + 1,
         dimension,
         value,
-      }))
-    )
+      })),
+    ),
   );
 
-  await db.insert(scheduledWorkouts).values({
-    id: scheduledWorkoutId,
-    userId,
-    templateId: null,
-    name: data.name,
-    scheduledAt: `${todayKey}T00:00`,
-    completed: true,
-    completedAt: today,
-  });
+  const batch: Parameters<typeof db.batch>[0] = [
+    db.insert(scheduledWorkouts).values({
+      id: scheduledWorkoutId,
+      userId,
+      templateId: null,
+      name: data.name,
+      scheduledAt: `${data.date}T00:00`,
+      completed: true,
+      completedAt: today,
+    }),
+    db.insert(scheduledWorkoutExercises).values(
+      exerciseRows.map(
+        ({ id, exerciseId, exerciseName, setCount, exerciseOrder }) => ({
+          id,
+          scheduledWorkoutId,
+          exerciseId,
+          exerciseName,
+          setCount,
+          exerciseOrder,
+        }),
+      ),
+    ),
+    ...(targetRows.length > 0
+      ? [db.insert(scheduledWorkoutExerciseTargets).values(targetRows)]
+      : []),
+    ...(completedSetRows.length > 0
+      ? [db.insert(completedSets).values(completedSetRows)]
+      : []),
+  ];
 
-  await db.insert(scheduledWorkoutExercises).values(
-    exerciseRows.map(({ id, exerciseId, exerciseName, setCount, exerciseOrder }) => ({
-      id,
-      scheduledWorkoutId,
-      exerciseId,
-      exerciseName,
-      setCount,
-      exerciseOrder,
-    }))
-  );
-
-  if (targetRows.length > 0) {
-    await db.insert(scheduledWorkoutExerciseTargets).values(targetRows);
-  }
-
-  if (completedSetRows.length > 0) {
-    await db.insert(completedSets).values(completedSetRows);
-  }
+  await db.batch(batch);
 
   return scheduledWorkoutId;
 }
